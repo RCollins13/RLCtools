@@ -10,7 +10,8 @@ compress.ad.matrix(
   weights = NULL,
   na.behavior = "threshold",
   na.frac = 0.05,
-  keep.vids = NULL
+  keep.vids = NULL,
+  elig.controls = NULL
 )
 }
 \arguments{
@@ -27,9 +28,11 @@ compressing. See \code{Details}.}
 \item{na.frac}{Fraction of \code{NA} entries allowed before failing a sample. See \code{Details}.}
 
 \item{keep.vids}{Optional vector of variant IDs to keep [default: keep all rows in \code{ad.df}]}
+
+\item{elig.controls}{Sample IDs eligible to be reported as 0 [default: all samples]}
 }
 \value{
-numeric vector
+numeric or logical vector, depending on \code{action}
 }
 \description{
 Compresses information in an allele dosage matrix

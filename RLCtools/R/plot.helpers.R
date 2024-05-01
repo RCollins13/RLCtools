@@ -204,3 +204,99 @@ color.points.by.density <- function(x, y, palette=NULL, bandwidth=1){
   plot.df[order(plot.df$dens), ]
 }
 
+
+#' Smart Element Spacing
+#'
+#' Enforce minimum distance between elements in a vector
+#'
+#' @param ideal.values Numeric values to be spaced
+#' @param min.dist Minimum distance between values
+#' @param lower.limit Values are not allowed to be placed below this limit
+#' \[default: no limits\]
+#' @param upper.limit Values are not allowed to be placed above this limit
+#' \[default: no limits\]
+#'
+#' @return Numeric vector
+#'
+#' @export smart.spacing
+#' @export
+smart.spacing <- function(ideal.values, min.dist, lower.limit=-Inf, upper.limit=Inf){
+  # Curate input values
+  val.order <- order(ideal.values)
+  n.vals <- length(ideal.values)
+  if(n.vals * min.dist > abs(upper.limit - lower.limit)){
+    stop("Number of points incompatible with 'min.dist' and specified limits")
+  }
+  ideal.sorted <- as.numeric(ideal.values[val.order])
+
+  # Enforce lower & upper limits on raw values before spacing
+  ideal.sorted[which(ideal.sorted < lower.limit)] <- lower.limit
+  ideal.sorted[which(ideal.sorted > upper.limit)] <- upper.limit
+
+  # Iteratively update spacing until best balance is reached
+  calc.spacing <- function(ideal.sorted, sig.digits=10){
+    round(ideal.sorted[-1] - ideal.sorted[-length(ideal.sorted)], sig.digits)
+    }
+  spacing <- calc.spacing(ideal.sorted)
+  while(any(spacing < min.dist)){
+    # Pick closest two points
+    # (break ties by taking pair of points with greatest room to be moved)
+    spacing.w.limits <- calc.spacing(c(lower.limit, ideal.sorted, upper.limit))
+    room.to.move <- sapply(1:length(spacing), function(i){sum(spacing.w.limits[c(i, i+2)])})
+    can.move <- which(room.to.move > 0)
+    move.priority <- intersect(order(room.to.move, decreasing=TRUE), can.move)
+    smallest <- min(spacing)
+    smaller.idx <- head(intersect(move.priority, which(spacing == smallest)), 1)
+    larger.idx <- smaller.idx + 1
+
+    # Slide points away from each other equally s/t they are exactly min.dist apart
+    # Never allow points to be placed beyond limits or jump another point in order
+    smaller.max.move <- spacing.w.limits[smaller.idx]
+    larger.max.move <- spacing.w.limits[larger.idx+1]
+    pad.each <- (min.dist - smallest) / 2
+    move.smaller <- min(pad.each, smaller.max.move)
+    move.larger <- min(pad.each, larger.max.move)
+    ideal.sorted[smaller.idx] <- ideal.sorted[smaller.idx] - move.smaller
+    ideal.sorted[larger.idx] <- ideal.sorted[larger.idx] + move.larger
+
+    # Update spacing from ideal.sorted
+    spacing <- calc.spacing(ideal.sorted)
+  }
+
+  return(ideal.sorted[val.order])
+}
+
+
+#' Legend-Axis Hybrid
+#'
+#' Add a legend to the right Y-axis with lines connecting legend labels to
+#' specified Y positions
+#'
+#' @param legend.names Labels to be printed in legend
+#' @param x Where the legend will connect to the rest of the plot (in X-axis units)
+#' @param y.positions Where should the legend labels be placed (in Y-axis units)
+#' @param sep.wex Width expansion term for text relative to `x`
+#' @param min.label.spacing Minimum distance between any two labels (in Y-axis units) \[default: 0.1\]
+#' @param lower.limit No label will be placed below this value on the Y-axis \[default: no limit\]
+#' @param upper.limit No label will be placed above this value on the Y-axis \[default: no limit\]
+#' @param colors Line colors connecting labels to plot body \[default: all black\]
+#' @param lwd Width of line connecting labels to plot body \[default: 3\]
+#'
+#' @return NULL
+#'
+#' @export yaxis.legend
+#' @export
+yaxis.legend <- function(legend.names, x, y.positions, sep.wex,
+                         min.label.spacing=0.1, lower.limit=-Inf,
+                         upper.limit=Inf, colors=NULL, lwd=3){
+  if(is.null(colors)){
+    colors <- "black"
+  }
+  leg.at <- smart.spacing(y.positions, min.dist=min.label.spacing,
+                          lower.limit=lower.limit, upper.limit=upper.limit)
+  text(x=x + sep.wex, y=leg.at, labels=legend.names, xpd=T, pos=4)
+  segments(x0=x, x1=x + (1.5*sep.wex), y0=y.positions, y1=leg.at,
+           lwd=lwd, col=colors, xpd=T, lend="round")
+}
+
+

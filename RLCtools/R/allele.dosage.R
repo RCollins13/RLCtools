@@ -44,6 +44,7 @@
 #' irrespective of genotype
 #' * `"sum"` : return the sum of allele dosages for all query rows per sample
 #' * `"max"` : return the maximum value for all query rows per sample
+#' * `"mean"` : return the mean of allele dosages for all query rows per sample
 #'
 #' @return numeric vector or data.frame, depending on `action`
 #'
@@ -130,8 +131,9 @@ query.ad.matrix <- function(ad, query.regions=NULL, query.ids=NULL,
 #' compressing. See `Details`.
 #' @param na.frac Fraction of `NA` entries allowed before failing a sample. See `Details`.
 #' @param keep.vids Optional vector of variant IDs to keep \[default: keep all rows in `ad.df`\]
+#' @param elig.controls Sample IDs eligible to be reported as 0 \[default: all samples\]
 #'
-#' @return numeric vector
+#' @return numeric or logical vector, depending on `action`
 #'
 #' @details The `na.behavior` argument recognizes two options:
 #' * `all`: only return `NA` for a sample if none of the rows in `ad.df` are non-NA
@@ -145,7 +147,7 @@ query.ad.matrix <- function(ad, query.regions=NULL, query.ids=NULL,
 #' @export
 compress.ad.matrix <- function(ad.df, action, weights=NULL,
                                na.behavior="threshold", na.frac=0.05,
-                               keep.vids=NULL){
+                               keep.vids=NULL, elig.controls=NULL){
   if(nrow(ad.df) < 2){
     if(nrow(ad.df) == 0 | action == "verbose"){
       return(ad.df)
@@ -205,14 +207,24 @@ compress.ad.matrix <- function(ad.df, action, weights=NULL,
       sum(as.numeric(vals), na.rm=T)
     })
   }else if(action == "max"){
-  query.res <- apply(ad.df, 2, function(vals){
-    max(as.numeric(vals), na.rm=T)
-  })
-}
+    query.res <- apply(ad.df, 2, function(vals){
+      max(as.numeric(vals), na.rm=T)
+    })
+  }else if(action == "mean"){
+    query.res <- apply(ad.df, 2, function(vals){
+      mean(as.numeric(vals), na.rm=T)
+    })
+  }else{
+    stop(paste("action ", action, " not recognized as a viable option for compress.ad.matrix", sep="'"))
+  }
+
 if(length(col.na) > 0 & action != "verbose"){
     query.res[col.na] <- NA
   }
   names(query.res) <- colnames(ad.df)
+  if(!is.null(elig.controls)){
+    query.res[which(query.res == 0 & !(names(query.res) %in% elig.controls))] <- NA
+  }
   return(query.res[which(!is.na(colnames(ad.df)))])
 }
 
