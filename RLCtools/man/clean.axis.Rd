@@ -33,8 +33,9 @@ clean.axis(
 \item{labels.at}{Positions for axis labels [default: values of \code{at}]}
 
 \item{label.units}{Specify custom units for the axis label. Default of \code{NULL}
-will display numeric values. Options currently include "percent" for percentages.
-Can be overridden by supplying \code{labels} directly.}
+will display numeric values. Options currently include "percent" for percentages
+and "count" for counts that will abbreviated with "k" for thousands and "M"
+for millions. Can be overridden by supplying \code{labels} directly.}
 
 \item{parse.labels}{Should \code{labels} be parsed as R expressions? [default: FALSE]}
 

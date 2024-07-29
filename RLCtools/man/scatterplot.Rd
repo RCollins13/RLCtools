@@ -5,7 +5,6 @@
 \title{Two-dimensional scatterplot}
 \usage{
 scatterplot(
-  pcs,
   X,
   Y,
   colors = NULL,
@@ -25,9 +24,9 @@ scatterplot(
 )
 }
 \arguments{
-\item{X}{PC to be plotted on the X-axis (see \code{Details})}
+\item{X}{Numeric vector of values to be plotted on the X-axis (see \code{Details})}
 
-\item{Y}{PC to be plotted on the Y-axis (see \code{Details})}
+\item{Y}{Numeric vector of values to be plotted on the Y-axis (see \code{Details})}
 
 \item{colors}{Vector of colors. Must be supplied in the same order as \code{X} and \code{Y} [default: "gray70"]}
 

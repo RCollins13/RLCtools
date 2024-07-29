@@ -10,8 +10,9 @@ yaxis.legend(
   y.positions,
   sep.wex,
   min.label.spacing = 0.1,
-  lower.limit = -Inf,
-  upper.limit = Inf,
+  label.cex = 1,
+  lower.limit = NULL,
+  upper.limit = NULL,
   colors = NULL,
   lwd = 3
 )
@@ -27,9 +28,11 @@ yaxis.legend(
 
 \item{min.label.spacing}{Minimum distance between any two labels (in Y-axis units) [default: 0.1]}
 
-\item{lower.limit}{No label will be placed below this value on the Y-axis [default: no limit]}
+\item{label.cex}{Value of \code{cex} to be used for legend text}
 
-\item{upper.limit}{No label will be placed above this value on the Y-axis [default: no limit]}
+\item{lower.limit}{No label will be placed below this value on the Y-axis [default: \code{par("usr")[3]}]}
+
+\item{upper.limit}{No label will be placed above this value on the Y-axis [default: \code{par("usr")[4]}]}
 
 \item{colors}{Line colors connecting labels to plot body [default: all black]}
 

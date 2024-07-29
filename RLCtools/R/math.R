@@ -45,3 +45,37 @@ mode <- function(values, break.ties="all", seed=2022){
     return(sample(modes, 1))
   }
 }
+
+
+#' Define Outlier Values
+#'
+#' Define outlier observations from a numeric vector using the standard
+#' Q1/Q3 + N*IQR approach
+#'
+#' @param values Vector of numeric values
+#' @param n.iqr Multiple of IQRs beyond which a point will be treated
+#' as an outlier \[default: 3\]
+#' @param fixed.min Optional. If specified, will override the lower bound below
+#' which observations will be treated as outliers.
+#' @param fixed.min Optional. If specified, will override the upper bound below
+#' which observations will be treated as outliers.
+#'
+#' @return Logical vector of outlier assignments for each element in `values`
+#'
+#' @export label.outliers
+#' @export
+label.outliers <- function(values, n.iqr=3, fixed.min=NULL, fixed.max=NULL){
+  values <- as.numeric(values)
+  v.iqr <- IQR(values, na.rm=T)
+  v.q1q3 <- quantile(values, probs=c(0.25, 0.75), na.rm=T)
+  v.out.bounds <- v.q1q3 + c(n.iqr * c(-1, 1) * v.iqr)
+  if(!is.null(fixed.min)){
+    v.out.bounds[1] <- as.numeric(fixed.min)
+  }
+  if(!is.null(fixed.max)){
+    v.out.bounds[2] <- as.numeric(fixed.max)
+  }
+  (values < v.out.bounds[1] | values > v.out.bounds[2])
+}
+
+

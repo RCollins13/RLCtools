@@ -26,6 +26,3 @@ formatted P-value as character
 \description{
 Format P-value for plotting
 }
-\details{
-Function borrowed from rCNV2 library (see Collins et al., Cell, 2022)
-}

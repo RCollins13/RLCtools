@@ -44,8 +44,9 @@ prep.plot.area <- function(xlims, ylims, parmar, xaxs="i", yaxs="i"){
 #' @param labels Labels for axis ticks \[default: values of `at`\]
 #' @param labels.at Positions for axis labels \[default: values of `at`\]
 #' @param label.units Specify custom units for the axis label. Default of `NULL`
-#' will display numeric values. Options currently include "percent" for percentages.
-#' Can be overridden by supplying `labels` directly.
+#' will display numeric values. Options currently include "percent" for percentages
+#' and "count" for counts that will abbreviated with "k" for thousands and "M"
+#' for millions. Can be overridden by supplying `labels` directly.
 #' @param parse.labels Should `labels` be parsed as R expressions? \[default: FALSE\]
 #' @param max.ticks Maximum number of axis ticks. Will be overridden by `at` \[default: 6\]
 #' @param title Axis title
@@ -83,7 +84,25 @@ clean.axis <- function(side, at=NULL, labels=NULL, labels.at=NULL, label.units=N
       if(label.units == "percent"){
         labels <- paste(100 * labels, "%", sep="")
       }
+      if(label.units == "count"){
+        lab.logs <- floor(log10(labels))
+        raw.best <- length(which(lab.logs < 3))
+        k.best <- length(which(lab.logs >= 3 & lab.logs < 6))
+        M.best <- length(which(lab.logs > 5))
+        if(M.best > 0){
+          labels <- prettyNum(round(as.numeric(labels) / 1000000, 1), big.mark=",")
+          labels <- paste(labels, "M", sep="")
+        }else if(k.best >= raw.best){
+          labels <- prettyNum(round(as.numeric(labels) / 1000, 0), big.mark=",")
+          labels <- paste(labels, "k", sep="")
+        }else{
+          labels <- prettyNum(labels, big.mark=",")
+        }
+      }
     }
+  }
+  if(paste(labels, collapse="") > 15){
+    cex.axis <- cex.axis - 0.5/6
   }
   if(is.null(labels.at)){labels.at <- at}
   if(side %in% c(1, 3)){
@@ -142,8 +161,6 @@ hex2grey <- function(in.colors){
 #' @param equality equality symbol to print after `P` \[default: '='\]
 #' @param min.neg.log10.p minimum order of magnitude to process before considering
 #' P-value to be arbitrarily/meaninglessly small \[default: 100\]
-#'
-#' @details Function borrowed from rCNV2 library (see Collins et al., Cell, 2022)
 #'
 #' @return formatted P-value as character
 #'
@@ -225,7 +242,15 @@ smart.spacing <- function(ideal.values, min.dist, lower.limit=-Inf, upper.limit=
   val.order <- order(ideal.values)
   n.vals <- length(ideal.values)
   if(n.vals * min.dist > abs(upper.limit - lower.limit)){
-    stop("Number of points incompatible with 'min.dist' and specified limits")
+    warning(paste("Number of points incompatible with 'min.dist' and",
+                  "specified limits. Reverting to equidistant spacing."))
+    if(is.infinite(lower.limit)){
+      lower.limit <- min(ideal.values)
+    }
+    if(is.infinite(upper.limit)){
+      upper.limit <- max(ideal.values)
+    }
+    return(seq(lower.limit, upper.limit, length.out=n.vals))
   }
   ideal.sorted <- as.numeric(ideal.values[val.order])
 
@@ -239,6 +264,9 @@ smart.spacing <- function(ideal.values, min.dist, lower.limit=-Inf, upper.limit=
     }
   spacing <- calc.spacing(ideal.sorted)
   while(any(spacing < min.dist)){
+    # Save old spacing info to check for convergence
+    old.spacing <- spacing
+
     # Pick closest two points
     # (break ties by taking pair of points with greatest room to be moved)
     spacing.w.limits <- calc.spacing(c(lower.limit, ideal.sorted, upper.limit))
@@ -261,6 +289,13 @@ smart.spacing <- function(ideal.values, min.dist, lower.limit=-Inf, upper.limit=
 
     # Update spacing from ideal.sorted
     spacing <- calc.spacing(ideal.sorted)
+
+    # Break if spacing has converged to optimal locations
+    if(setequal(spacing, old.spacing)){
+      break
+    }else{
+      old.spacing <- spacing
+    }
   }
 
   return(ideal.sorted[val.order])
@@ -277,8 +312,9 @@ smart.spacing <- function(ideal.values, min.dist, lower.limit=-Inf, upper.limit=
 #' @param y.positions Where should the legend labels be placed (in Y-axis units)
 #' @param sep.wex Width expansion term for text relative to `x`
 #' @param min.label.spacing Minimum distance between any two labels (in Y-axis units) \[default: 0.1\]
-#' @param lower.limit No label will be placed below this value on the Y-axis \[default: no limit\]
-#' @param upper.limit No label will be placed above this value on the Y-axis \[default: no limit\]
+#' @param label.cex Value of `cex` to be used for legend text
+#' @param lower.limit No label will be placed below this value on the Y-axis \[default: `par("usr")[3]`\]
+#' @param upper.limit No label will be placed above this value on the Y-axis \[default: `par("usr")[4]`\]
 #' @param colors Line colors connecting labels to plot body \[default: all black\]
 #' @param lwd Width of line connecting labels to plot body \[default: 3\]
 #'
@@ -287,14 +323,21 @@ smart.spacing <- function(ideal.values, min.dist, lower.limit=-Inf, upper.limit=
 #' @export yaxis.legend
 #' @export
 yaxis.legend <- function(legend.names, x, y.positions, sep.wex,
-                         min.label.spacing=0.1, lower.limit=-Inf,
-                         upper.limit=Inf, colors=NULL, lwd=3){
+                         min.label.spacing=0.1, label.cex=1,
+                         lower.limit=NULL, upper.limit=NULL,
+                         colors=NULL, lwd=3){
   if(is.null(colors)){
     colors <- "black"
   }
+  if(is.null(lower.limit)){
+    lower.limit <- par("usr")[3]
+  }
+  if(is.null(upper.limit)){
+    upper.limit <- par("usr")[4]
+  }
   leg.at <- smart.spacing(y.positions, min.dist=min.label.spacing,
                           lower.limit=lower.limit, upper.limit=upper.limit)
-  text(x=x + sep.wex, y=leg.at, labels=legend.names, xpd=T, pos=4)
+  text(x=x + sep.wex, y=leg.at, labels=legend.names, xpd=T, pos=4, cex=label.cex)
   segments(x0=x, x1=x + (1.5*sep.wex), y0=y.positions, y1=leg.at,
            lwd=lwd, col=colors, xpd=T, lend="round")
 }

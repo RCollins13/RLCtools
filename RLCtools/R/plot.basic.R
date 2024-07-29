@@ -17,8 +17,8 @@
 #'
 #' Generate a scatterplot of two numeric values with options for coloring
 #'
-#' @param X PC to be plotted on the X-axis (see `Details`)
-#' @param Y PC to be plotted on the Y-axis (see `Details`)
+#' @param X Numeric vector of values to be plotted on the X-axis (see `Details`)
+#' @param Y Numeric vector of values to be plotted on the Y-axis (see `Details`)
 #' @param colors Vector of colors. Must be supplied in the same order as `X` and `Y` \[default: "gray70"\]
 #' @param title Main title for plot \[default: NULL\]
 #' @param x.label.line Line for X-axis labels (`label.line` parameter for [RLCtools::clean.axis])
@@ -38,7 +38,7 @@
 #'
 #' @export scatterplot
 #' @export
-scatterplot <- function(pcs, X, Y, colors=NULL, title=NULL,
+scatterplot <- function(X, Y, colors=NULL, title=NULL,
                         x.label.line=NULL, x.title=NULL, x.title.line=0.5, xlims=NULL,
                         y.label.line=NULL, y.title=NULL, y.title.line=0.5, ylims=NULL,
                         legend.vals=NULL, legend.labels=NULL,
@@ -179,9 +179,9 @@ ridgeplot <- function(data, names=NULL, hill.overlap=0.35, xlims=NULL, x.axis=TR
 #'
 #' @export plot.qq
 #' @export
-plot.qq <- function(pvals, cutoff=NULL, do.fdr=TRUE, fdr.cutoff=0.01, print.stats=FALSE, 
-                    title=NULL, title.line=0, xmax=NULL, ymax=NULL, label.cex=1, 
-                    pt.color="grey35", pt.cex=0.35, fdr.color="grey5", fdr.cex=0.7, 
+plot.qq <- function(pvals, cutoff=NULL, do.fdr=TRUE, fdr.cutoff=0.01, print.stats=FALSE,
+                    title=NULL, title.line=0, xmax=NULL, ymax=NULL, label.cex=1,
+                    pt.color="grey35", pt.cex=0.35, fdr.color="grey5", fdr.cex=0.7,
                     parmar=c(2.25, 2.5, 0.25, 0.25)){
   # Format P-values
   if (!is.numeric(pvals)){
@@ -609,6 +609,109 @@ km.curve <- function(surv.models, colors, group.names=NULL, ci.alpha=0.15,
                  y.positions=final.y[order(final.y)],
                  min.label.spacing=legend.label.spacing,
                  sep.wex=0.05*diff(xlims), colors=colors[order(final.y)])
+  }
+}
+
+
+#' Density with Outlier Rug
+#'
+#' Plot one-dimensional density with a marginal rug of ticks for outlier observations
+#'
+#' @param vals Numeric values to plot
+#' @param style Style of density plot; either "density" (default) for kernel
+#' density estimator or "hist"/"histogram" for histogram
+#' @param min.complexity Minimum number of unique values in `vals` before
+#' automatically defaulting to `style == "hist"` \[default: 30\]
+#' @param bw.adj Bandwidth adjustment for density estimation. See `adjust` in [stats::density()].
+#' @param outlier.lower.bound Threshold below which an observation is treated
+#' as an outlier \[default: Q1 - 3*IQR\]
+#' @param outlier.upper.bound Threshold below which an observation is treated
+#' as an outlier \[default: Q3 + 3*IQR\]
+#' @param outlier.tick.hex Relative height expansion of outlier ticks \[default: 0.02\]
+#' @param color Color for density area \[default: "gray80"\]
+#' @param title (Optional) Title for plot
+#' @param x.title Title for X-axis \[default: no title\]
+#' @param x.label.units Units for X-axis labels; passed to [RLCtools::clean.axis()]
+#' @param y.title Title for Y-axis \[default: no title\]
+#' @param outlier.lwd Line width for outlier ticks \[default: 1/3\]
+#' @param parmar Margin values passed to par()
+#'
+#' @details When `style == "density"`, this function will attempt to approximate
+#' the equivalent count values for the Y-axis, although these values will depend
+#' on `bw.adj` and can sometimes be misleading
+#'
+#' @seealso [stats::density()], [RLCtools::clean.axis()]
+#'
+#' @export density.w.outliers
+#' @export
+density.w.outliers <- function(vals, style="density", min.complexity=30, bw.adj=1,
+                               outlier.lower.bound=NULL, outlier.upper.bound=NULL,
+                               outlier.tick.hex=0.02, color="gray80", title=NULL,
+                               x.title=NULL, x.label.units=NULL, y.title=NULL,
+                               outlier.lwd=1/3, parmar=c(2, 2, 0.35, 0.35)){
+  # Determine outlier points
+  vals <- as.numeric(vals)
+  n.unique.vals <- length(unique(vals))
+  if(n.unique.vals < 30){
+    is.out <- rep(FALSE, length(vals))
+  }else{
+    is.out <- label.outliers(vals,
+                             fixed.min=outlier.lower.bound,
+                             fixed.max=outlier.upper.bound)
+  }
+  n.out <- length(which(is.out))
+
+  # Scale axis limits according to units of values
+  xmin <- min(vals, na.rm=T)
+  xmax <- max(vals, na.rm=T)
+  if(!is.null(x.label.units)){
+    if(x.label.units == "percent"){
+      xmin <- max(c(0, min(vals, na.rm=T)))
+      xmax <- min(c(1, max(vals, na.rm=T)))
+    }
+  }
+  xlims <- c(xmin, xmax)
+
+  # Compute density over non-outlier points
+  histogram <- style %in% c("hist", "histogram") | n.unique.vals < 30
+  if(histogram){
+    v.dens <- hist(vals[which(!is.out)], plot=F,
+                   breaks=seq(xmin, xmax, length.out=50 / bw.adj))
+    ymax.label <- ymax <- max(v.dens$counts, na.rm=T)
+  }else{
+    v.dens <- density(vals[which(!is.out)], adjust=bw.adj)
+    # Approximate count estimates with hist
+    max.count <- max(hist(vals[which(!is.out)],
+                          breaks=seq(min(vals[which(!is.out)], na.rm=T),
+                                     max(vals[which(!is.out)], na.rm=T),
+                                     length.out=length(v.dens$x)), plot=F)$counts)
+    v.dens$y <- max.count * v.dens$y / max(v.dens$y, na.rm=T)
+    ymax <- max(v.dens$y, na.rm=T)
+  }
+
+  # Prepare plot area
+  prep.plot.area(xlims, c(0, ymax), parmar=parmar, xaxs="r")
+  clean.axis(1, title=x.title, label.units=x.label.units, infinite=TRUE, label.line=-0.9)
+  clean.axis(2, label.units=y.title, title=y.title, infinite=TRUE)
+  mtext(3, text=title, line=0.1)
+
+  # Add ticks for outliers
+  if(n.out > 0){
+    out.tick.y1 <- outlier.tick.hex * diff(par("usr")[3:4])
+    segments(x0=vals[is.out], x1=vals[is.out], y0=rep(0, n.out),
+             y1=rep(out.tick.y1, n.out), xpd=T, lwd=outlier.lwd)
+  }
+
+  # Add density
+  if(histogram){
+    n.breaks <- length(v.dens$breaks)
+    rect(xleft=v.dens$breaks[-n.breaks], xright=v.dens$breaks[-1],
+         ybottom=rep(0, length=n.breaks-1), ytop=v.dens$counts,
+         col=color, xpd=T)
+  }else{
+    polygon(x=c(v.dens$x, rev(v.dens$x)),
+            y=c(v.dens$y, rep(0, length(v.dens$x))),
+            col=color, xpd=T)
   }
 }
 
