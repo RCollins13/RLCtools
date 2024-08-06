@@ -101,7 +101,7 @@ clean.axis <- function(side, at=NULL, labels=NULL, labels.at=NULL, label.units=N
       }
     }
   }
-  if(paste(labels, collapse="") > 15){
+  if(paste(labels, collapse="") > 15 | length(labels) > 4){
     cex.axis <- cex.axis - 0.5/6
   }
   if(is.null(labels.at)){labels.at <- at}

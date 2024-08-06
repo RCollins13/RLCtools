@@ -10,8 +10,8 @@ ridgeplot(
   hill.overlap = 0.35,
   xlims = NULL,
   x.axis = TRUE,
-  fill = "grey70",
-  border = "grey35",
+  fill = NULL,
+  border = NULL,
   border.lwd = 2,
   parmar = c(2.5, 3, 0.25, 0.25)
 )

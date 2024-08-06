@@ -113,7 +113,7 @@ scatterplot <- function(X, Y, colors=NULL, title=NULL,
 #' @export ridgeplot
 #' @export
 ridgeplot <- function(data, names=NULL, hill.overlap=0.35, xlims=NULL, x.axis=TRUE,
-                      fill="grey70", border="grey35", border.lwd=2,
+                      fill=NULL, border=NULL, border.lwd=2,
                       parmar=c(2.5, 3, 0.25, 0.25)){
   # Get names before manipulating data
   if(is.null(names)){
@@ -136,6 +136,14 @@ ridgeplot <- function(data, names=NULL, hill.overlap=0.35, xlims=NULL, x.axis=TR
   }
   ylims <- c(0, length(data) + hill.overlap)
 
+  # Get ridge colors
+  if(is.null(fill)){
+    fill <- rep("grey70", length(data))
+  }
+  if(is.null(border)){
+    border <- rep("grey35", length(data))
+  }
+
   # Prep plot area
   prep.plot.area(xlims, ylims, parmar, xaxs="i", yaxs="r")
   median(unlist(sapply(data, function(df){df$y})), na.rm=T)
@@ -149,7 +157,7 @@ ridgeplot <- function(data, names=NULL, hill.overlap=0.35, xlims=NULL, x.axis=TR
     abline(h=i-1, col="gray85")
     x <- c(data[[i]]$x, rev(data[[i]]$x))
     y <- c(data[[i]]$y, rep(0, times=length(data[[i]]$y)))+i-1
-    polygon(x, y, border=fill, col=fill, lwd=border.lwd)
+    polygon(x, y, border=fill[i], col=fill[i], lwd=border.lwd)
     points(data[[i]]$x, data[[i]]$y+i-1, type="l", lwd=border.lwd, col=border)
   })
 }
@@ -712,6 +720,90 @@ density.w.outliers <- function(vals, style="density", min.complexity=30, bw.adj=
     polygon(x=c(v.dens$x, rev(v.dens$x)),
             y=c(v.dens$y, rep(0, length(v.dens$x))),
             col=color, xpd=T)
+  }
+}
+
+
+#' Stacked barplot
+#'
+#' Produce a stacked barplot of two categorical variables
+#'
+#' @param major.values "Major" axis values; used for Y-axis groupings
+#' @param minor.values "Minor" axis values; will be depicted as stacked bars
+#' within each major axis group
+#' @param minor.colors Color assignments for "minor" axis values; see `Details`
+#' @param x.title Optional title for top X axis
+#' @param y.label.cex Cex parameter for Y-axis "major" group labels
+#' @param bar.hex Width of bars relative to size of gap between bars. Setting
+#' `bar.hex == 1` will leave no gap between the bars
+#' @param add.legend Should a legend of minor value colors be added to the
+#' bottom-right of the plot? \[default: add legend\]
+#' @param parmar Margin values passed to par()
+#'
+#' @param details
+#' By default, `minor.colors` will uniformly sample a grayscale palette and
+#' assign one color to each unique value present in `minor.values`. Alternatively,
+#' custom color assignments can be specified in the following ways:
+#'
+#' 1. As a function to generate a palette, which will be used in place of the
+#' grayscale palette described above
+#'
+#' 2. As a named vector of color codes recognized by R, where the names of the
+#' vector elements map onto all unique values of `minor.values`
+#'
+#' @examples
+#' set.seed(2024)
+#' x <- sample(1:5, 100, replace=TRUE)
+#' y <- sample(letters[1:4], 100, replace=TRUE)
+#' stacked.barplot(x, y)
+#'
+#' @export stacked.barplot
+#' @export
+stacked.barplot <- function(major.values, minor.values, minor.colors=NULL,
+                            x.title=NULL, y.label.cex=5/6, bar.hex=0.8,
+                            add.legend=TRUE, parmar=c(0.5, 3, 2.5, 0.5)){
+  # Organize plot data
+  major.table <- sort(table(major.values), decreasing=TRUE)
+  minor.table <- table(sort(minor.values))
+  plot.df <- do.call("rbind", lapply(names(major.table), function(major){
+    sapply(names(minor.table), function(minor){
+      length(which(major.values == major & minor.values == minor))
+    })
+  }))
+  rownames(plot.df) <- names(major.table)
+  bar.hex <- min(c(bar.hex, 1))
+
+  # Handle color assignment
+  if(is.null(minor.colors)){
+    minor.colors <- colorRampPalette(c("black", "white"))(length(minor.table) + 2)[-c(1, length(minor.table) + 2)]
+    names(minor.colors) <- names(minor.table)
+  }
+
+  # Prepare plot area
+  prep.plot.area(c(0, max(major.table)), c(length(major.table), 0),
+                 parmar=parmar)
+  axis(2, at=(1:nrow(plot.df)) - 0.5, tick=F, las=2, cex=y.label.cex,
+       labels=rownames(plot.df), line=-0.9)
+  clean.axis(3, label.units="count", infinite.positive=TRUE, title=x.title)
+
+  # Add bars
+  r.bar <- bar.hex / 2
+  sapply(1:length(major.table), function(major.idx){
+    rect(xleft=c(0, cumsum(plot.df[major.idx, ]))[-ncol(plot.df)],
+         xright=cumsum(plot.df[major.idx, ]),
+         ybottom=major.idx - 0.5 - r.bar,
+         ytop=major.idx -0.5 + r.bar,
+         col=minor.colors[colnames(plot.df)],
+         border=NA, bty="n")
+    rect(xleft=0, xright=major.table[major.idx],
+         ybottom=major.idx - 0.5 - r.bar,
+         ytop=major.idx -0.5 + r.bar,
+         col=NA)
+  })
+
+  # Add legend, if optioned
+  if(add.legend){
+    legend("bottomright", names(minor.colors), fill=minor.colors, cex=5/6, bty="n")
   }
 }
 
