@@ -189,8 +189,7 @@ compress.ad.matrix <- function(ad.df, action, weights=NULL,
 
   if(action == "verbose"){
     query.res <- ad.df
-  }
-  if(action == "any"){
+  }else if(action == "any"){
     query.res <- as.numeric(apply(ad.df, 2, function(vals){
       any(as.logical(as.numeric(vals)), na.rm=T)
     }))
@@ -218,7 +217,7 @@ compress.ad.matrix <- function(ad.df, action, weights=NULL,
     stop(paste("action ", action, " not recognized as a viable option for compress.ad.matrix", sep="'"))
   }
 
-if(length(col.na) > 0 & action != "verbose"){
+  if(length(col.na) > 0 & action != "verbose"){
     query.res[col.na] <- NA
   }
   names(query.res) <- colnames(ad.df)
