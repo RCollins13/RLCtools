@@ -11,6 +11,10 @@ scaled.swarm(
   sep.wex = 0.05,
   pch = 19,
   pt.cex = 0.2,
+  title = NULL,
+  title.line = 0,
+  title.cex = 1,
+  add.y.axis = TRUE,
   y.title = NULL,
   y.title.line = 0.5,
   y.axis.at = NULL,
@@ -28,9 +32,17 @@ scaled.swarm(
 \item{sep.wex}{Relative width scalar for whitespace on the X-axis
 between groups [default: 0.05]}
 
-\item{pch}{Value passed to \code{beeswarm}}
+\item{pch}{Value of \code{pch} passed to \code{beeswarm}}
 
 \item{pt.cex}{Value of \code{cex} passed to \code{beeswarm}}
+
+\item{title}{Custom title for top axis}
+
+\item{title.line}{Line for main title on top axis [default: 0]}
+
+\item{title.cex}{\code{cex} parameter for main title [default: 1]}
+
+\item{add.y.axis}{Should the Y \(left\) axis be added? [default: TRUE]}
 
 \item{y.title}{Title of Y-axis}
 

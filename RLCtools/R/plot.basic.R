@@ -427,8 +427,12 @@ scaled.bars <- function(values, colors, group.names=NULL, sep.wex=0.05,
 #' @param group.names (Optional) group names to assign to each list element in `values`
 #' @param sep.wex Relative width scalar for whitespace on the X-axis
 #' between groups \[default: 0.05\]
-#' @param pch Value passed to `beeswarm`
+#' @param pch Value of `pch` passed to `beeswarm`
 #' @param pt.cex Value of `cex` passed to `beeswarm`
+#' @param title Custom title for top axis
+#' @param title.line Line for main title on top axis \[default: 0\]
+#' @param title.cex `cex` parameter for main title \[default: 1\]
+#' @param add.y.axis Should the Y \(left\) axis be added? \[default: TRUE\]
 #' @param y.title Title of Y-axis
 #' @param y.title.line Value of `line` for `y.title`
 #' @param y.axis.at Custom Y-axis tick positions, if desired
@@ -444,11 +448,13 @@ scaled.bars <- function(values, colors, group.names=NULL, sep.wex=0.05,
 #' @export scaled.swarm
 #' @export
 scaled.swarm <- function(values, colors, group.names=NULL, sep.wex=0.05,
-                         pch=19, pt.cex=0.2, y.title=NULL, y.title.line=0.5,
-                         y.axis.at=NULL, y.axis.labels=NULL,
+                         pch=19, pt.cex=0.2, title=NULL, title.line=0,
+                         title.cex=1, add.y.axis=TRUE, y.title=NULL,
+                         y.title.line=0.5, y.axis.at=NULL, y.axis.labels=NULL,
                          parmar=c(1, 2.5, 0.25, 0.25)){
-  # Ensure beeswarm library is loaded
-  require(beeswarm, quietly=TRUE)
+  # Ensure beeswarm & vioplot are loaded
+  require(beeswarm, quietly=T)
+  require(vioplot, quietly=T)
 
   # Summarize plotting data
   values <- lapply(values, function(v){as.numeric(v[!is.na(v)])})
@@ -481,9 +487,14 @@ scaled.swarm <- function(values, colors, group.names=NULL, sep.wex=0.05,
   axis(1, at=x.axis.at, line=-1, tick=F, labels=group.names, xpd=T)
 
   # Add Y axis
-  clean.axis(2, at=y.axis.at, labels=y.axis.labels,
-             cex.axis=5/6, infinite=TRUE, label.line=-0.7,
-             title.line=y.title.line, title=y.title)
+  if(add.y.axis){
+    clean.axis(2, at=y.axis.at, labels=y.axis.labels,
+               cex.axis=5/6, infinite=TRUE, label.line=-0.7,
+               title.line=y.title.line, title=y.title)
+  }
+
+  # Add title
+  mtext(3, text=title, line=title.line, cex=title.cex)
 
   # Add boxplots and swarms
   sapply(1:n.groups, function(i){
