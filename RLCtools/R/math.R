@@ -79,3 +79,56 @@ label.outliers <- function(values, n.iqr=3, fixed.min=NULL, fixed.max=NULL){
 }
 
 
+#' Position-interval intersection
+#'
+#' Logical check of whether one integer is inside an interval
+#' defined by two other integers
+#'
+#' @param pos Query integer
+#' @param interval Two-element numeric vector defining the bounds of the target interval
+#'
+#' @returns Logical
+#'
+#' @examples
+#' is.inside(2, c(1, 3))
+#' # TRUE
+#'
+#' is.inside(5, c(1, 3))
+#' # FALSE
+#'
+#' @export is.inside
+#' @export
+is.inside <- function(pos, interval){
+  pos <- as.numeric(pos)
+  pos >= min(interval, na.rm=T) & pos <= max(interval, na.rm=T)
+}
+
+
+#' Inverse-variance weighted meta-analysis
+#'
+#' Conduct a simple inverse-variance weighted meta-analysis of point estimates
+#'
+#' @param estimates Numeric point estimates (e.g., log-odds ratios)
+#' @param vars Variances for estimates
+#' @param conf Confidence interval width \[default: 0.95\]
+#'
+#' @returns Named numeric vector with pooled point estimate, pooled variance,
+#' lower CI bound, and upper CI bound
+#'
+#' @export ivw.meta
+#' @export
+ivw.meta <- function(estimates, vars, conf=0.95){
+  keep.idx <- which(complete.cases(data.frame(estimates, vars)))
+  numerator <- sum((estimates/vars)[keep.idx])
+  denominator <- sum(1/vars[keep.idx])
+  avg <- numerator/denominator
+  pooled.var <- 1/denominator
+  pooled.se <- sqrt(pooled.var)
+  lower.ci <- avg + qnorm((1-conf)/2)*pooled.se
+  upper.ci <- avg + qnorm(conf+(1-conf)/2)*pooled.se
+  return(c("estimate" = avg,
+           "variance" = pooled.var,
+           "lower.ci" = lower.ci,
+           "upper.ci" = upper.ci))
+}
+

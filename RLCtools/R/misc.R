@@ -42,26 +42,32 @@ stretch.vector <- function(values, k){
 #' * `"median"` : impute missing values as the median of all non-missing values
 #' * `"mode"` : impute missing values as the mode of all non-missing values
 #'
+#' If one of the above values is not specified, the value of `fill.missing` will
+#' be taken literally and will be used to fill all missing cells
+#'
 #' Note that `fill.missing` values of `"mean"` and `"median"` are only applicable to
-#' columns with numeric values. For non-numeric columns, the behavior of 
+#' columns with numeric values. For non-numeric columns, the behavior of
 #' `fill.missing = "mode"` will always be applied.
 #'
 #' All columns will be subjected to automated missing value imputation unless a
 #' non-`NULL` value is supplied to `fill.columns`, in which case only the column
 #' names passed to `fill.columns` will be filled.
-#' 
+#'
 #' @return data.frame
 #'
 #' @export impute.missing.values
 #' @export
 impute.missing.values <- function(df, fill.missing="mean", fill.columns=NULL){
   categorical.action <- RLCtools::mode
+  fixed.fill <- FALSE
   if(fill.missing == "mean"){
     numeric.action <- mean
   }else if(fill.missing == "median"){
     numeric.action <- median
   }else if(fill.missing == "mode"){
     numeric.action <- mode
+  }else{
+    fixed.fill <- TRUE
   }
 
   if(is.null(fill.columns)){
@@ -70,7 +76,9 @@ impute.missing.values <- function(df, fill.missing="mean", fill.columns=NULL){
   for(col in fill.columns){
     na.idxs <- which(is.na(df[, col]))
     if(length(na.idxs) > 0 & length(na.idxs) < nrow(df)){
-      if(is.numeric(df[, col])){
+      if(fixed.fill){
+        df[na.idxs, col] <- fill.missing
+      }else if(is.numeric(df[, col])){
         df[na.idxs, col] <- numeric.action(df[-na.idxs, col])
       }else{
         df[na.idxs, col] <- categorical.action(df[-na.idxs, col], break.ties="first")

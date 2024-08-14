@@ -27,6 +27,9 @@ Recognized values for \code{fill.missing} include:
 \item \code{"mode"} : impute missing values as the mode of all non-missing values
 }
 
+If one of the above values is not specified, the value of \code{fill.missing} will
+be taken literally and will be used to fill all missing cells
+
 Note that \code{fill.missing} values of \code{"mean"} and \code{"median"} are only applicable to
 columns with numeric values. For non-numeric columns, the behavior of
 \code{fill.missing = "mode"} will always be applied.

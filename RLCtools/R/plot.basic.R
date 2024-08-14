@@ -140,6 +140,9 @@ ridgeplot <- function(data, names=NULL, hill.overlap=0.35, xlims=NULL, x.axis=TR
   if(is.null(fill)){
     fill <- rep("grey70", length(data))
   }
+  if(length(fill) < length(data)){
+    fill <- rep(fill, ceiling(length(data) / length(fill)))
+  }
   if(is.null(border)){
     border <- rep("grey35", length(data))
   }
