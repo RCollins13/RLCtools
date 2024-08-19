@@ -746,12 +746,20 @@ density.w.outliers <- function(vals, style="density", min.complexity=30, bw.adj=
 #' @param minor.values "Minor" axis values; will be depicted as stacked bars
 #' within each major axis group
 #' @param minor.colors Color assignments for "minor" axis values; see `Details`
-#' @param x.title Optional title for top X axis
+#' @param x.title Optional title for X axis
 #' @param y.label.cex Cex parameter for Y-axis "major" group labels
 #' @param bar.hex Width of bars relative to size of gap between bars. Setting
 #' `bar.hex == 1` will leave no gap between the bars
 #' @param add.legend Should a legend of minor value colors be added to the
 #' bottom-right of the plot? \[default: add legend\]
+#' @param legend.xadj Legend x-position adjustment, in relative user units.
+#' Only relevant if `add.legend` is `TRUE`. \[default: -0.075]
+#' @param annotate.counts Should exact bar counts be annotated at the tip of
+#' each bar? \[default: no annotations\]
+#' @param end.label.xadj End-label x-position adjustment, in relative user units.
+#' Only relevant if `annotate.counts` is `TRUE`. \[default: -0.025]
+#' @param orient Should the bar length be increasing to the `right` or
+#' `left`? \[default: `right`\]
 #' @param parmar Margin values passed to par()
 #'
 #' @param details
@@ -775,7 +783,19 @@ density.w.outliers <- function(vals, style="density", min.complexity=30, bw.adj=
 #' @export
 stacked.barplot <- function(major.values, minor.values, minor.colors=NULL,
                             x.title=NULL, y.label.cex=5/6, bar.hex=0.8,
-                            add.legend=TRUE, parmar=c(0.5, 3, 2.5, 0.5)){
+                            add.legend=TRUE, legend.xadj=-0.075,
+                            annotate.counts=FALSE, end.label.xadj=-0.025,
+                            orient="right", parmar=c(0.5, 3, 2.5, 0.5)){
+  # Handle NAs
+  # Minor NAs will be filled
+  minor.values[which(is.na(minor.values))] <- "N.S."
+  # Major NAs will be dropped outright
+  drop.idx <- is.na(major.values)
+  if(any(drop.idx)){
+    major.values <- major.values[-which(drop.idx)]
+    minor.values <- minor.values[-which(drop.idx)]
+  }
+
   # Organize plot data
   major.table <- sort(table(major.values), decreasing=TRUE)
   minor.table <- table(sort(minor.values))
@@ -794,16 +814,23 @@ stacked.barplot <- function(major.values, minor.values, minor.colors=NULL,
   }
 
   # Prepare plot area
-  prep.plot.area(c(0, max(major.table)), c(length(major.table), 0),
-                 parmar=parmar)
-  axis(2, at=(1:nrow(plot.df)) - 0.5, tick=F, las=2, cex=y.label.cex,
+  xlims <- c(0, max(major.table))
+  ylims <- c(length(major.table), 0)
+  if(orient == "left"){
+    xlims <- rev(xlims)
+    ylims <- rev(ylims)
+  }
+  prep.plot.area(xlims, ylims, parmar=parmar)
+  axis(if(orient == "left"){4}else{2},
+       at=(1:nrow(plot.df)) - 0.5, tick=F, las=2, cex.axis=y.label.cex,
        labels=rownames(plot.df), line=-0.9)
-  clean.axis(3, label.units="count", infinite.positive=TRUE, title=x.title)
+  clean.axis(if(orient == "left"){1}else{3}, label.units="count",
+             infinite.positive=TRUE, title=x.title, title.line=0.3)
 
   # Add bars
   r.bar <- bar.hex / 2
-  sapply(1:length(major.table), function(major.idx){
-    rect(xleft=c(0, cumsum(plot.df[major.idx, ]))[-ncol(plot.df)],
+  sapply(1:nrow(major.table), function(major.idx){
+    rect(xleft=c(0, cumsum(plot.df[major.idx, ]))[-(ncol(plot.df)+1)],
          xright=cumsum(plot.df[major.idx, ]),
          ybottom=major.idx - 0.5 - r.bar,
          ytop=major.idx -0.5 + r.bar,
@@ -812,12 +839,29 @@ stacked.barplot <- function(major.values, minor.values, minor.colors=NULL,
     rect(xleft=0, xright=major.table[major.idx],
          ybottom=major.idx - 0.5 - r.bar,
          ytop=major.idx -0.5 + r.bar,
-         col=NA)
+         col=NA, xpd=T)
   })
 
   # Add legend, if optioned
   if(add.legend){
-    legend("bottomright", names(minor.colors), fill=minor.colors, cex=5/6, bty="n")
+    legend.colors <- minor.colors[intersect(names(sort(-minor.table)), names(minor.colors))]
+    if(orient == "left"){
+      legend(x=par("usr")[1] + (legend.xadj * diff(par("usr")[1:2])),
+      y=par("usr")[4],
+      names(legend.colors), fill=legend.colors, cex=5/6, bty="n", xpd=T)
+    }else{
+      legend("bottomright", names(legend.colors), fill=legend.colors,
+             cex=5/6, bty="n", xpd=T)
+    }
+  }
+
+  # Add count labels, if optioned
+  if(annotate.counts){
+    bar.ends <- apply(plot.df, 1, sum, na.rm=T)
+    text(x=bar.ends + (end.label.xadj * diff(par("usr")[1:2])),
+         y=(1:nrow(plot.df)) - 0.5,
+         labels=prettyNum(bar.ends, big.mark=","),
+         cex=5/6, pos=if(orient == "left"){2}else{4}, xpd=T)
   }
 }
 

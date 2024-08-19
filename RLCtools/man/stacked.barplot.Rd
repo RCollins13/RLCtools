@@ -12,6 +12,10 @@ stacked.barplot(
   y.label.cex = 5/6,
   bar.hex = 0.8,
   add.legend = TRUE,
+  legend.xadj = -0.075,
+  annotate.counts = FALSE,
+  end.label.xadj = -0.025,
+  orient = "right",
   parmar = c(0.5, 3, 2.5, 0.5)
 )
 }
@@ -23,7 +27,7 @@ within each major axis group}
 
 \item{minor.colors}{Color assignments for "minor" axis values; see \code{Details}}
 
-\item{x.title}{Optional title for top X axis}
+\item{x.title}{Optional title for X axis}
 
 \item{y.label.cex}{Cex parameter for Y-axis "major" group labels}
 
@@ -32,6 +36,17 @@ within each major axis group}
 
 \item{add.legend}{Should a legend of minor value colors be added to the
 bottom-right of the plot? [default: add legend]}
+
+\item{legend.xadj}{Legend x-position adjustment, in relative user units.
+Only relevant if \code{add.legend} is \code{TRUE}. [default: -0.075]}
+
+\item{annotate.counts}{Should exact bar counts be annotated at the tip of
+each bar? [default: no annotations]}
+
+\item{end.label.xadj}{End-label x-position adjustment, in relative user units.
+Only relevant if \code{annotate.counts} is \code{TRUE}. [default: -0.025]}
+
+\item{orient}{Should the bar length be increasing to the \code{right} or \code{left}? [default: \code{right}]}
 
 \item{parmar}{Margin values passed to par()}
 
