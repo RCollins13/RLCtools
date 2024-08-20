@@ -46,7 +46,8 @@ each bar? [default: no annotations]}
 \item{end.label.xadj}{End-label x-position adjustment, in relative user units.
 Only relevant if \code{annotate.counts} is \code{TRUE}. [default: -0.025]}
 
-\item{orient}{Should the bar length be increasing to the \code{right} or \code{left}? [default: \code{right}]}
+\item{orient}{Should the bar length be increasing to the \code{right} or
+\code{left}? [default: \code{right}]}
 
 \item{parmar}{Margin values passed to par()}
 

@@ -89,3 +89,32 @@ impute.missing.values <- function(df, fill.missing="mean", fill.columns=NULL){
   return(df)
 }
 
+
+#' Keyed vector remapping
+#'
+#' Partial remapping of vectors that can tolerate data missingness
+#'
+#' @param x Vector of values (keys) to be remapped
+#' @param map Named vector mapping keys (vector names) to values
+#' @param default.value Optional default value to assign for elements of `x` not
+#' present in `names(map)`. By default, values of `x` that fail to remap into
+#' `map` will be left unchanged.
+#'
+#' @details Inspired by Pandas map() function:
+#' https://pandas.pydata.org/docs/reference/api/pandas.Series.map.html
+#'
+#' @export remap
+#' @export
+remap <- function(x, map, default.value=NULL){
+  if(!is.null(default.value)){
+    x[which(!(x %in% c("NA", names(map))))] <- default.value
+  }
+  for(key in names(map)){
+    x[which(x == key)] <- map[key]
+  }
+  if("NA" %in% names(map) & any(is.na(x))){
+    x[which(is.na(x))] <- map["NA"]
+  }
+  return(x)
+}
+
