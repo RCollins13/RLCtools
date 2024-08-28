@@ -11,6 +11,7 @@ manhattan(
   gw.sig,
   pt.cex = 0.3,
   title = NULL,
+  x.title = "Genomic coordinate",
   parmar = c(2, 2.25, 0.25, 0.3)
 )
 }
@@ -24,6 +25,8 @@ manhattan(
 \item{pt.cex}{Value of \code{cex} passed to \code{\link[=points]{points()}} [default: 0.3]}
 
 \item{title}{(Optional) title}
+
+\item{x.title}{Title for x axis [default: "Genomic coordinate"]}
 
 \item{parmar}{Value of \code{mar} passed to \code{\link[=par]{par()}}}
 

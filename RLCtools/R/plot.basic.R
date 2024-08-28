@@ -281,12 +281,14 @@ plot.qq <- function(pvals, cutoff=NULL, do.fdr=TRUE, fdr.cutoff=0.01, print.stat
 #' @param gw.sig P-value threshold for genome-wide significance
 #' @param pt.cex Value of `cex` passed to [points()] \[default: 0.3\]
 #' @param title (Optional) title
+#' @param x.title Title for x axis \[default: "Genomic coordinate"\]
 #' @param parmar Value of `mar` passed to [par()]
 #'
 #' @export manhattan
 #' @export
 manhattan <- function(stats, p.column, chrom.colors, gw.sig, pt.cex=0.3,
-                      title=NULL, parmar=c(2, 2.25, 0.25, 0.3)){
+                      title=NULL, x.title="Genomic coordinate",
+                      parmar=c(2, 2.25, 0.25, 0.3)){
   # Prep plot area
   xlims <- range(stats$pos)
   ylims <- c(0, ceiling(max(c(stats[, p.column], gw.sig), na.rm=T) + 1))
@@ -300,7 +302,7 @@ manhattan <- function(stats, p.column, chrom.colors, gw.sig, pt.cex=0.3,
 
   # Add axes
   clean.axis(1, at=c(0, cumsum(contig.lengths)), tck=0.025, infinite=TRUE,
-             labels=NA, title="Genomic coordinate", title.line=0)
+             labels=NA, title=x.title, title.line=0)
   sapply(1:length(contig.lengths), function(x){
     axis(1, at=((c(0, cumsum(contig.lengths[-24])) + cumsum(contig.lengths))/2)[x],
          tick=F, cex.axis=4/6, labels=gsub("^chr", "", names(contig.lengths)[x]),
