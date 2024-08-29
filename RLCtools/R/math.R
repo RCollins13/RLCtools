@@ -12,7 +12,7 @@
 # Mathematical helper functions
 
 
-#' Arithmetic Mode
+#' Arithmetic mode
 #'
 #' Compute the arithmetic mode of a vector
 #'
@@ -132,3 +132,29 @@ ivw.meta <- function(estimates, vars, conf=0.95){
            "upper.ci" = upper.ci))
 }
 
+
+#' Welch's t-test for summary statistics
+#'
+#' Implementation of Welch's two-sample t-test for unequal variances based on
+#' summary statistics rather than observation-level data
+#'
+#' @param means Two-element numeric vector of sample means
+#' @param sds Two-element numeric vector of sample standard deviations
+#' @param ns Two-element integer vector of sample sizes
+#'
+#' @details Based on an implementation on StackExchange:
+#' https://stats.stackexchange.com/questions/30394/how-to-perform-two-sample-t-tests-in-r-by-inputting-sample-statistics-rather-tha
+#'
+#' @returns data.frame with summary of test, including difference in means,
+#' standard error, t statistic, and P-value
+#'
+#' @export sumstat.welch.test
+#' @export
+sumstat.welch.test <- function(means, sds, ns){
+  se <- sqrt( (sds[1]^2/ns[1]) + (sds[2]^2/ns[2]) )
+  df <- ( (sds[1]^2/ns[1] + sds[2]^2/ns[2])^2 )/( (sds[1]^2/ns[1])^2/(ns[1]-1) + (sds[2]^2/ns[2])^2/(ns[2]-1) )
+  t <- (means[1]-means[2])/se
+  dat <- c(means[1]-means[2], se, t, 2*pt(-abs(t),df))
+  names(dat) <- c("Difference of means", "Std Error", "t", "p-value")
+  return(dat)
+}

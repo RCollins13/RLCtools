@@ -2,7 +2,7 @@
 % Please edit documentation in R/math.R
 \name{mode}
 \alias{mode}
-\title{Arithmetic Mode}
+\title{Arithmetic mode}
 \usage{
 mode(values, break.ties = "all", seed = 2022)
 }
