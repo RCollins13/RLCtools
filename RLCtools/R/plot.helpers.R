@@ -160,22 +160,22 @@ hex2grey <- function(in.colors){
 #' to be converted to scientific notation \[default: 3\]
 #' @param equality equality symbol to print after `P` \[default: '='\]
 #' @param min.neg.log10.p minimum order of magnitude to process before considering
-#' P-value to be arbitrarily/meaninglessly small \[default: 100\]
+#' P-value to be arbitrarily/meaninglessly small \[default: 30\]
 #'
 #' @return formatted P-value as character
 #'
 #' @export format.pval
 #' @export
-format.pval <- function(p, nsmall=2, max.decimal=3, equality="=", min.neg.log10.p=100){
+format.pval <- function(p, nsmall=2, max.decimal=3, equality="=", min.neg.log10.p=30){
   if(-log10(p)>min.neg.log10.p){
-    bquote(italic(P) %~~% 0)
-  }else if(ceiling(-log10(p)) > max.decimal){
+    bquote(italic(P) < 10 ^ -.(min.neg.log10.p))
+  }else if(floor(-log10(p)) > max.decimal){
     parts <- unlist(strsplit(format(p, scientific=T), split="e"))
     base <- gsub(" ", "", format(round(as.numeric(parts[1]), nsmall), digits=1+nsmall), fixed=T)
     exp <- gsub(" ", "", as.numeric(parts[2]), fixed=T)
     if(base %in% c("1", "10")){
       if(base == "10"){
-        exp <- as.character(as.numeric(exp) - 1)
+        exp <- as.character(as.numeric(exp) + 1)
       }
       bquote(italic(P) ~ .(equality) ~ 10 ^ .(exp))
     }else{

@@ -4,7 +4,7 @@
 \alias{format.pval}
 \title{Format P-value}
 \usage{
-\method{format}{pval}(p, nsmall = 2, max.decimal = 3, equality = "=", min.neg.log10.p = 100)
+\method{format}{pval}(p, nsmall = 2, max.decimal = 3, equality = "=", min.neg.log10.p = 30)
 }
 \arguments{
 \item{p}{P-value}
@@ -18,7 +18,7 @@ to be converted to scientific notation [default: 3]}
 \item{equality}{equality symbol to print after \code{P} [default: '=']}
 
 \item{min.neg.log10.p}{minimum order of magnitude to process before considering
-P-value to be arbitrarily/meaninglessly small [default: 100]}
+P-value to be arbitrarily/meaninglessly small [default: 30]}
 }
 \value{
 formatted P-value as character

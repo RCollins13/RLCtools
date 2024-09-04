@@ -148,13 +148,13 @@ ivw.meta <- function(estimates, vars, conf=0.95){
 #' @returns data.frame with summary of test, including difference in means,
 #' standard error, t statistic, and P-value
 #'
-#' @export sumstat.welch.test
+#' @export welch.test.from.sumstats
 #' @export
-sumstat.welch.test <- function(means, sds, ns){
+welch.test.from.sumstats <- function(means, sds, ns){
   se <- sqrt( (sds[1]^2/ns[1]) + (sds[2]^2/ns[2]) )
   df <- ( (sds[1]^2/ns[1] + sds[2]^2/ns[2])^2 )/( (sds[1]^2/ns[1])^2/(ns[1]-1) + (sds[2]^2/ns[2])^2/(ns[2]-1) )
   t <- (means[1]-means[2])/se
   dat <- c(means[1]-means[2], se, t, 2*pt(-abs(t),df))
-  names(dat) <- c("Difference of means", "Std Error", "t", "p-value")
+  names(dat) <- c("Difference of means", "Std Error", "t", "P.value")
   return(dat)
 }
