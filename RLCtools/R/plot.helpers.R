@@ -167,9 +167,9 @@ hex2grey <- function(in.colors){
 #' @export format.pval
 #' @export
 format.pval <- function(p, nsmall=2, max.decimal=3, equality="=", min.neg.log10.p=30){
-  if(-log10(p)>min.neg.log10.p){
+  if(-log10(p) > min.neg.log10.p){
     bquote(italic(P) < 10 ^ -.(min.neg.log10.p))
-  }else if(floor(-log10(p)) > max.decimal){
+  }else if(ceiling(-log10(p)) > max.decimal){
     parts <- unlist(strsplit(format(p, scientific=T), split="e"))
     base <- gsub(" ", "", format(round(as.numeric(parts[1]), nsmall), digits=1+nsmall), fixed=T)
     exp <- gsub(" ", "", as.numeric(parts[2]), fixed=T)
