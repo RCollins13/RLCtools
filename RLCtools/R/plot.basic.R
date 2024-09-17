@@ -46,10 +46,10 @@ scatterplot <- function(X, Y, colors=NULL, title=NULL,
   x <- as.numeric(X)
   y <- as.numeric(Y)
   if(is.null(xlims)){
-    xlims <- range(x)
+    xlims <- range(x, na.rm=T)
   }
   if(is.null(ylims)){
-    ylims <- range(y)
+    ylims <- range(y, na.rm=T)
   }
   if(is.null(colors)){
     colors <- rep("gray70", length(x))
