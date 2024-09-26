@@ -18,6 +18,10 @@ stacked.barplot(
   major.legend = FALSE,
   major.legend.colors = NULL,
   major.legend.xadj = -0.04,
+  minor.labels.on.bars = FALSE,
+  minor.label.letter.width = 0.05,
+  minor.label.color = NULL,
+  minor.label.cex = 5/6,
   annotate.counts = FALSE,
   end.label.xadj = -0.025,
   orient = "right",
@@ -57,6 +61,17 @@ labels? [default: FALSE]}
 \code{major.legend} [default: uniform greyscale]}
 
 \item{major.legend.xadj}{X adjustment scalar for major legend [default: -0.04]}
+
+\item{minor.labels.on.bars}{Should minor value labels be printed on bars,
+where space is permitting? [default: FALSE]}
+
+\item{minor.label.letter.width}{Proportion of total X-axis to apportion per
+letter for minor labels. Only used if \code{minor.labels.on.bars} is \code{TRUE}. [default: 0.05]}
+
+\item{minor.label.color}{Color for minor label text. If \code{NULL}, color will be
+dynamically optimized to be most visible against each bar's background color.}
+
+\item{minor.label.cex}{Character expansion parameter for minor label text [default: 5/6]}
 
 \item{annotate.counts}{Should exact bar counts be annotated at the tip of
 each bar? [default: no annotations]}

@@ -777,6 +777,13 @@ density.w.outliers <- function(vals, style="density", min.complexity=30, bw.adj=
 #' @param major.legend.colors Named vector mapping `major.values` to colors for
 #' `major.legend` \[default: uniform greyscale\]
 #' @param major.legend.xadj X adjustment scalar for major legend \[default: -0.04\]
+#' @param minor.labels.on.bars Should minor value labels be printed on bars,
+#' where space is permitting? \[default: FALSE\]
+#' @param minor.label.letter.width Proportion of total X-axis to apportion per
+#' letter for minor labels. Only used if `minor.labels.on.bars` is `TRUE`. \[default: 0.05\]
+#' @param minor.label.color Color for minor label text. If `NULL`, color will be
+#' dynamically optimized to be most visible against each bar's background color.
+#' @param minor.label.cex Character expansion parameter for minor label text \[default: 5/6\]
 #' @param annotate.counts Should exact bar counts be annotated at the tip of
 #' each bar? \[default: no annotations\]
 #' @param end.label.xadj End-label x-position adjustment, in relative user units.
@@ -808,10 +815,11 @@ density.w.outliers <- function(vals, style="density", min.complexity=30, bw.adj=
 #' @export
 stacked.barplot <- function(major.values, minor.values=NULL, colors=NULL,
                             x.title=NULL, x.title.line=0.3, x.label.line=-0.65,
-                            y.label.cex=5/6, bar.hex=0.8,
-                            add.legend=TRUE, legend.xadj=-0.075,
-                            major.legend=FALSE, major.legend.colors=NULL,
-                            major.legend.xadj=-0.04,
+                            y.label.cex=5/6, bar.hex=0.8, add.legend=TRUE,
+                            legend.xadj=-0.075, major.legend=FALSE,
+                            major.legend.colors=NULL, major.legend.xadj=-0.04,
+                            minor.labels.on.bars=FALSE, minor.label.letter.width=0.05,
+                            minor.label.color=NULL, minor.label.cex=5/6,
                             annotate.counts=FALSE, end.label.xadj=-0.025,
                             orient="right", custom.order=NULL,
                             parmar=c(0.5, 3, 2.5, 0.5)){
@@ -886,6 +894,28 @@ stacked.barplot <- function(major.values, minor.values=NULL, colors=NULL,
          ytop=major.idx -0.5 + r.bar,
          col=NA, xpd=T)
   })
+
+  # If optioned, print key codes on physical bars where space permits
+  if(minor.labels.on.bars){
+    prop.df <- floor((plot.df / max(xlims)) / minor.label.letter.width)
+    sapply(1:ncol(prop.df), function(k){
+      if(any(prop.df[, k] > 0)){
+        longest.idx <- head(which.max(prop.df[, k]), 1)
+        longest.x <- mean(c(0, cumsum(plot.df[longest.idx, ]))[c(k, k+1)])
+        label <- colnames(plot.df)[k]
+        room <- prop.df[longest.idx, k]
+        if(nchar(label) > room){
+          label <- paste(substr(label, 1, room), ".", sep="")
+        }
+        lab.col <- minor.label.color
+        if(is.null(lab.col)){
+          lab.col <- optimize.label.color(colors[colnames(plot.df)[k]])
+        }
+        text(x=longest.x, y=longest.idx-0.5, cex=minor.label.cex,
+             labels=label, col=lab.col)
+      }
+    })
+  }
 
   # Add minor legend, if optioned
   if(add.legend){

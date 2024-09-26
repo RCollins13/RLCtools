@@ -432,3 +432,21 @@ greyscale.palette <- function(n){
   colorRampPalette(c("black", "white"))(n + 2)[-c(1, n + 2)]
 }
 
+
+#' Optimize label color
+#'
+#' Automatically determine whether a label should be white or black based on the
+#' brightness of the background color upon which the label will be added
+#'
+#' @param bg.color Hex code for background color upon which the label will be printed
+#' @param cutoff Brightness threshold for switching from white to black \[default: 0.7\]
+#'
+#' @returns Either "black" or "white"
+#'
+#' @export optimize.label.color
+#' @export
+optimize.label.color <- function(bg.color, cutoff=0.7){
+  v <- DescTools::ColToHsv(bg.color)[3, 1]
+  if(v >= cutoff){"black"}else{"white"}
+}
+
