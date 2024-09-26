@@ -343,3 +343,92 @@ yaxis.legend <- function(legend.names, x, y.positions, sep.wex,
 }
 
 
+#' HSV-based palette interpolation
+#'
+#' Generate a color palette based on uniform sampling across HSV space
+#'
+#' @param hues Hue values in \[0, 1\]
+#' @param sats Saturation values in \[0, 1\]
+#' @param vals Brightness values in \[0, 1\]
+#'
+#' @details All of `hues`, `sats`, and `vals` must have the same lengths. If
+#' any of these vectors is detected to be shorter than the others, its values
+#' will be recycled as per normal R convention.
+#'
+#' @examples
+#' set.seed(1234)
+#' colors <- hsv.palette(hues=(0:10)/10, sats=runif(10, 0.5, 0.8), vals=runif(10, 0.4, 0.9))
+#' plot(1:10, 1:10, pch=19, cex=3, col=colors)
+#'
+#' @returns Vector of hex color codes
+#'
+#' @export hsv.palette
+#' @export
+hsv.palette <- function(hues, sats, vals){
+  # Ensure all vectors are the same length
+  comps <- list(hues, sats, vals)
+  n.colors <- max(sapply(comps, length))
+  comp.df <- do.call("cbind", lapply(comps, function(v){
+    l.v <- length(v)
+    if(l.v < n.colors){rep(v, times=ceiling(n.colors / l.v))[1:n.colors]}else{v}
+  }))
+  hsv(h=comp.df[, 1], s=comp.df[, 2], v=comp.df[, 3], alpha=1)
+}
+
+
+#' Categorical rainbow palette
+#'
+#' Generate a rainbow color palette suitable for N categorical variables
+#'
+#' @param n Number of colors in palette
+#' @param hue.range Two-element numeric vector specifying range of eligible hues \[default: c(0, 1)\]
+#' @param saturation.range Two-element numeric vector specifying range of
+#' eligible saturations  \[default: c(0, 1)\]
+#' @param value.range  Two-element numeric vector specifying range of
+#' eligible values  \[default: c(0, 1)\]
+#' @param period Scalar for how many complete sine rotations (2*pi) should be sampled
+#' for saturation and value \[default: 1\]
+#'
+#' @details Colors will be uniformly sampled across `hue.range`, with saturation
+#' and value being sampled approximately according to `sin(x)` and `-sin(x)`,
+#' for x uniformly spaced elements in \[0, `period`*pi\], respectively.
+#'
+#' @seealso [RLCtools::hsv.palette()]
+#'
+#' @returns Character vector of hex colors
+#'
+#' @export categorical.rainbow
+#' @export
+categorical.rainbow <- function(n, hue.range=c(0, 1), saturation.range=c(0.5, 0.8),
+                                value.range=c(0.3, 0.95), period=1){
+  # Ensure there's no overlapping colors at the ends of the range
+  n <- n+1
+
+  # Determine hues
+  hues <- seq(hue.range[1], hue.range[2], length.out=n)
+
+  # Generate opposing sine samples for saturation and value
+  s.points <- (sin(pi*(seq(0, 2*period, length.out=n))) + 1)/2
+  sats <- saturation.range[1] + (s.points*(saturation.range[2] - saturation.range[1]))
+  v.points <- (-sin(pi*(seq(0, 2*period, length.out=n))) + 1)/2
+  vals <- value.range[1] + (v.points*(value.range[2] - value.range[1]))
+
+  # Generate palette
+  hsv.palette(hues, sats, vals)[1:(n-1)]
+}
+
+
+#' Greyscale palette
+#'
+#' Generate a sequential greyscale palette that does not end at black & white
+#'
+#' @param n Number of colors in palette
+#'
+#' @returns Character vector of hex colors
+#'
+#' @export greyscale.palette
+#' @export
+greyscale.palette <- function(n){
+  colorRampPalette(c("black", "white"))(n + 2)[-c(1, n + 2)]
+}
+

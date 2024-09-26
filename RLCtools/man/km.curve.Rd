@@ -8,13 +8,19 @@ km.curve(
   surv.models,
   colors,
   group.names = NULL,
-  ci.alpha = 0.15,
+  km.lwd = 3,
+  ci.alpha = 0.1,
   legend = TRUE,
   legend.names = NULL,
   legend.label.spacing = 0.075,
+  legend.label.cex = 1,
   title = NULL,
   y.title = "Survival Probability",
   xlims = NULL,
+  x.label.line = -0.75,
+  x.title.line = 0,
+  x.tck = -0.0175,
+  time.is.days = TRUE,
   parmar = c(2, 3, 0.25, 4)
 )
 }
@@ -25,7 +31,9 @@ km.curve(
 
 \item{group.names}{(Optional) group names to assign to each list element in \code{surv.models}}
 
-\item{ci.alpha}{Transparency value \code{alpha} for confidence interval shading [default: 0.15]}
+\item{km.lwd}{Line width for Kaplan-Meier curves [default: 3]}
+
+\item{ci.alpha}{Transparency value \code{alpha} for confidence interval shading [default: 0.1]}
 
 \item{legend}{Should a legend be plotted?}
 
@@ -33,11 +41,22 @@ km.curve(
 
 \item{legend.label.spacing}{Minimum vertical spacing between legend labels [default: 0.075]}
 
+\item{legend.label.cex}{Character expansion value for text labels in legend [default: 1]}
+
 \item{title}{(Optional) Title for plot}
 
 \item{y.title}{Title for Y-axis [default: "Survival Probability"]}
 
-\item{xlims}{(Optional) two-element vector of start and stop values for X-axis, in days}
+\item{xlims}{(Optional) two-element vector of start and stop values for X-axis,
+specified in days (or years if \code{time.is.days} is \code{FALSE})}
+
+\item{x.label.line}{Line for X-axis labels [default: -0.75]}
+
+\item{x.title.line}{Line for X-axis title [default: 0]}
+
+\item{x.tck}{X-axis tick length [default: -0.0175]}
+
+\item{time.is.days}{Should time be interpreted as days [defualt: TRUE]}
 
 \item{parmar}{Margin values passed to par()}
 }

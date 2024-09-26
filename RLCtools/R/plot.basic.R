@@ -535,23 +535,31 @@ scaled.swarm <- function(values, colors, group.names=NULL, sep.wex=0.05,
 #' @param surv.models List of one or more [`survival::summary.survfit`] objects
 #' @param colors Vector of colors for the list elements in `surv.models`
 #' @param group.names (Optional) group names to assign to each list element in `surv.models`
-#' @param ci.alpha Transparency value `alpha` for confidence interval shading \[default: 0.15\]
+#' @param km.lwd Line width for Kaplan-Meier curves \[default: 3\]
+#' @param ci.alpha Transparency value `alpha` for confidence interval shading \[default: 0.1\]
 #' @param legend Should a legend be plotted?
 #' @param legend.names (Optional) mapping of `values` to labels for legend
 #' @param legend.label.spacing Minimum vertical spacing between legend labels \[default: 0.075\]
+#' @param legend.label.cex Character expansion value for text labels in legend \[default: 1\]
 #' @param title (Optional) Title for plot
 #' @param y.title Title for Y-axis \[default: "Survival Probability"\]
-#' @param xlims (Optional) two-element vector of start and stop values for X-axis, in days
+#' @param xlims (Optional) two-element vector of start and stop values for X-axis,
+#' specified in days (or years if `time.is.days` is `FALSE`)
+#' @param x.label.line Line for X-axis labels \[default: -0.75\]
+#' @param x.title.line Line for X-axis title \[default: 0\]
+#' @param x.tck X-axis tick length \[default: -0.0175\]
+#' @param time.is.days Should time be interpreted as days \[defualt: TRUE\]
 #' @param parmar Margin values passed to par()
 #'
 #' @seealso [`survival::Surv`], [`survival::survfit`], [`survival::summary.survfit`]
 #'
 #' @export km.curve
 #' @export
-km.curve <- function(surv.models, colors, group.names=NULL, ci.alpha=0.15,
+km.curve <- function(surv.models, colors, group.names=NULL, km.lwd=3, ci.alpha=0.1,
                      legend=TRUE, legend.names=NULL, legend.label.spacing=0.075,
-                     title=NULL, y.title="Survival Probability",
-                     xlims=NULL, parmar=c(2, 3, 0.25, 4)){
+                     legend.label.cex=1, title=NULL, y.title="Survival Probability",
+                     xlims=NULL, x.label.line=-0.75, x.title.line=0, x.tck=-0.0175,
+                     time.is.days=TRUE, parmar=c(2, 3, 0.25, 4)){
   # Ensure survival library is loaded within function scope
   require(survival, quietly=TRUE)
 
@@ -569,8 +577,13 @@ km.curve <- function(surv.models, colors, group.names=NULL, ci.alpha=0.15,
 
   # Prep plot area
   prep.plot.area(xlims, c(0, 1.025), parmar)
-  x.ax.step <- max(c(floor(xlims[2] / (365*6)), 1))
-  x.ax.years <- seq(0, xlims[2]/365, by=x.ax.step)
+  if(time.is.days){
+    x.ax.step <- max(c(floor(xlims[2] / (365*6)), 1))
+    x.ax.years <- seq(0, xlims[2]/365, by=x.ax.step)
+  }else{
+    x.ax.step <- max(c(floor(xlims[2] / 6), 1))
+    x.ax.years <- seq(0, xlims[2], by=x.ax.step)
+  }
 
   # Add confidence intervals
   # Loop over this twice: first to lay white backgrounds, then add colors
@@ -602,15 +615,16 @@ km.curve <- function(surv.models, colors, group.names=NULL, ci.alpha=0.15,
         x <- c(0, RLCtools::stretch.vector(surv.models[[i]]$time, 2))
         y <- c(1, 1, RLCtools::stretch.vector(surv.models[[i]]$surv, 2))[1:length(x)]
       }
-      points(x, y, type="l", col=colors[[i]], lwd=3)
+      points(x, y, type="l", col=colors[[i]], lwd=km.lwd)
     }
   })
 
   # Add axes
-  clean.axis(1, at=x.ax.years*365, labels=x.ax.years, infinite=TRUE,
-             title="Years", label.line=-0.75, title.line=0, tck=-0.0175)
+  clean.axis(1, at=if(time.is.days){x.ax.years*365}else{x.ax.years},
+             labels=x.ax.years, infinite=TRUE,
+             title="Years", label.line=x.label.line, title.line=x.title.line, tck=x.tck)
   clean.axis(2, title=y.title, infinite=FALSE, tck=-0.0175)
-  mtext(title, side=3, line=0, font=2)
+  mtext(title, side=3, line=0)
 
   # Add legend
   if(legend){
@@ -630,7 +644,7 @@ km.curve <- function(surv.models, colors, group.names=NULL, ci.alpha=0.15,
       }
     })
     yaxis.legend(legend.names[order(final.y)], x=xlims[2] + (0.05*diff(xlims)),
-                 y.positions=final.y[order(final.y)],
+                 y.positions=final.y[order(final.y)], label.cex=legend.label.cex,
                  min.label.spacing=legend.label.spacing,
                  sep.wex=0.05*diff(xlims), colors=colors[order(final.y)])
   }
@@ -742,13 +756,15 @@ density.w.outliers <- function(vals, style="density", min.complexity=30, bw.adj=
 
 #' Stacked barplot
 #'
-#' Produce a stacked barplot of two categorical variables
+#' Produce a stacked barplot of one or two categorical variables
 #'
 #' @param major.values "Major" axis values; used for Y-axis groupings
-#' @param minor.values "Minor" axis values; will be depicted as stacked bars
-#' within each major axis group
-#' @param minor.colors Color assignments for "minor" axis values; see `Details`
+#' @param minor.values "Minor" axis values; if provided, will be depicted as
+#' stacked bars within each major axis group
+#' @param colors Color assignments for "minor" axis values; see `Details`
 #' @param x.title Optional title for X axis
+#' @param x.title.line Value of `title.line` passed to [RLCtools::clean.axis()]
+#' @param x.label.line Value of `label.line` passed to [RLCtools::clean.axis()]
 #' @param y.label.cex Cex parameter for Y-axis "major" group labels
 #' @param bar.hex Width of bars relative to size of gap between bars. Setting
 #' `bar.hex == 1` will leave no gap between the bars
@@ -756,18 +772,25 @@ density.w.outliers <- function(vals, style="density", min.complexity=30, bw.adj=
 #' bottom-right of the plot? \[default: add legend\]
 #' @param legend.xadj Legend x-position adjustment, in relative user units.
 #' Only relevant if `add.legend` is `TRUE`. \[default: -0.075]
+#' @param major.legend Should a major color legend be added between Y axis and
+#' labels? \[default: FALSE\]
+#' @param major.legend.colors Named vector mapping `major.values` to colors for
+#' `major.legend` \[default: uniform greyscale\]
+#' @param major.legend.xadj X adjustment scalar for major legend \[default: -0.04\]
 #' @param annotate.counts Should exact bar counts be annotated at the tip of
 #' each bar? \[default: no annotations\]
 #' @param end.label.xadj End-label x-position adjustment, in relative user units.
 #' Only relevant if `annotate.counts` is `TRUE`. \[default: -0.025]
 #' @param orient Should the bar length be increasing to the `right` or
 #' `left`? \[default: `right`\]
+#' @param custom.order Specific order of major values to use for bars
 #' @param parmar Margin values passed to par()
 #'
 #' @param details
-#' By default, `minor.colors` will uniformly sample a grayscale palette and
-#' assign one color to each unique value present in `minor.values`. Alternatively,
-#' custom color assignments can be specified in the following ways:
+#' By default, `colors` will uniformly sample a grayscale palette and
+#' assign one color to each unique value present in `minor.values` (or `major.values`,
+#' if `minor.values` is not specified). Alternatively, custom color assignments
+#' can be specified in the following ways:
 #'
 #' 1. As a function to generate a palette, which will be used in place of the
 #' grayscale palette described above
@@ -783,11 +806,21 @@ density.w.outliers <- function(vals, style="density", min.complexity=30, bw.adj=
 #'
 #' @export stacked.barplot
 #' @export
-stacked.barplot <- function(major.values, minor.values, minor.colors=NULL,
-                            x.title=NULL, y.label.cex=5/6, bar.hex=0.8,
+stacked.barplot <- function(major.values, minor.values=NULL, colors=NULL,
+                            x.title=NULL, x.title.line=0.3, x.label.line=-0.65,
+                            y.label.cex=5/6, bar.hex=0.8,
                             add.legend=TRUE, legend.xadj=-0.075,
+                            major.legend=FALSE, major.legend.colors=NULL,
+                            major.legend.xadj=-0.04,
                             annotate.counts=FALSE, end.label.xadj=-0.025,
-                            orient="right", parmar=c(0.5, 3, 2.5, 0.5)){
+                            orient="right", custom.order=NULL,
+                            parmar=c(0.5, 3, 2.5, 0.5)){
+  # Check if minor values are provided
+  no.minor <- is.null(minor.values)
+  if(no.minor){
+    minor.values <- major.values
+  }
+
   # Handle NAs
   # Minor NAs will be filled
   minor.values[which(is.na(minor.values))] <- "N.S."
@@ -801,6 +834,15 @@ stacked.barplot <- function(major.values, minor.values, minor.colors=NULL,
   # Organize plot data
   major.table <- sort(table(major.values), decreasing=TRUE)
   minor.table <- table(sort(minor.values))
+  if(!is.null(custom.order)){
+    if(!all(length(union(names(major.table), custom.order)) %in% c(length(major.table), length(custom.order)))){
+      warning("Not all values of `custom.order` appear in major values (or vice versa)")
+    }
+    major.table <- major.table[custom.order]
+    if(no.minor){
+      minor.table <- minor.table[custom.order]
+    }
+  }
   plot.df <- do.call("rbind", lapply(names(major.table), function(major){
     sapply(names(minor.table), function(minor){
       length(which(major.values == major & minor.values == minor))
@@ -810,9 +852,9 @@ stacked.barplot <- function(major.values, minor.values, minor.colors=NULL,
   bar.hex <- min(c(bar.hex, 1))
 
   # Handle color assignment
-  if(is.null(minor.colors)){
-    minor.colors <- colorRampPalette(c("black", "white"))(length(minor.table) + 2)[-c(1, length(minor.table) + 2)]
-    names(minor.colors) <- names(minor.table)
+  if(is.null(colors)){
+    colors <- greyscale.palette(length(minor.table))
+    names(colors) <- names(minor.table)
   }
 
   # Prepare plot area
@@ -825,9 +867,10 @@ stacked.barplot <- function(major.values, minor.values, minor.colors=NULL,
   prep.plot.area(xlims, ylims, parmar=parmar)
   axis(if(orient == "left"){4}else{2},
        at=(1:nrow(plot.df)) - 0.5, tick=F, las=2, cex.axis=y.label.cex,
-       labels=rownames(plot.df), line=-0.9)
+       labels=rownames(plot.df), line=if(major.legend){-0.4}else{-0.9})
   clean.axis(if(orient == "left"){1}else{3}, label.units="count",
-             infinite.positive=TRUE, title=x.title, title.line=0.3)
+             infinite.positive=TRUE, title=x.title, title.line=x.title.line,
+             label.line=x.label.line)
 
   # Add bars
   r.bar <- bar.hex / 2
@@ -836,7 +879,7 @@ stacked.barplot <- function(major.values, minor.values, minor.colors=NULL,
          xright=cumsum(plot.df[major.idx, ]),
          ybottom=major.idx - 0.5 - r.bar,
          ytop=major.idx -0.5 + r.bar,
-         col=minor.colors[colnames(plot.df)],
+         col=colors[colnames(plot.df)],
          border=NA, bty="n")
     rect(xleft=0, xright=major.table[major.idx],
          ybottom=major.idx - 0.5 - r.bar,
@@ -844,9 +887,9 @@ stacked.barplot <- function(major.values, minor.values, minor.colors=NULL,
          col=NA, xpd=T)
   })
 
-  # Add legend, if optioned
+  # Add minor legend, if optioned
   if(add.legend){
-    legend.colors <- minor.colors[intersect(names(sort(-minor.table)), names(minor.colors))]
+    legend.colors <- colors[intersect(names(sort(-minor.table)), names(colors))]
     if(orient == "left"){
       legend(x=par("usr")[1] + (legend.xadj * diff(par("usr")[1:2])),
       y=par("usr")[4],
@@ -857,13 +900,25 @@ stacked.barplot <- function(major.values, minor.values, minor.colors=NULL,
     }
   }
 
+  # Add major legend in margin, if optioned
+  if(major.legend){
+    if(is.null(major.legend.colors)){
+      major.legend.colors <- greyscale.palette(length(major.table))
+      names(major.legend.colors) <- rownames(plot.df)
+    }
+    maj.leg.xadj <- if(orient == "left"){-major.legend.xadj}else{major.legend.xadj}
+    points(x=rep(maj.leg.xadj*diff(par("usr")[1:2]), nrow(plot.df)),
+           y=(1:nrow(plot.df)) - 0.5, pch=23, xpd=T, col="black",
+           bg=major.legend.colors[rownames(plot.df)])
+  }
+
   # Add count labels, if optioned
   if(annotate.counts){
     bar.ends <- apply(plot.df, 1, sum, na.rm=T)
-    text(x=bar.ends + (end.label.xadj * diff(par("usr")[1:2])),
+    end.xadj <- if(orient == "left"){-end.label.xadj}else{end.label.xadj}
+    text(x=bar.ends + (end.xadj * diff(par("usr")[1:2])),
          y=(1:nrow(plot.df)) - 0.5,
          labels=prettyNum(bar.ends, big.mark=","),
          cex=5/6, pos=if(orient == "left"){2}else{4}, xpd=T)
   }
 }
-

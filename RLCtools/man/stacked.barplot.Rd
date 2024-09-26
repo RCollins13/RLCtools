@@ -6,28 +6,38 @@
 \usage{
 stacked.barplot(
   major.values,
-  minor.values,
-  minor.colors = NULL,
+  minor.values = NULL,
+  colors = NULL,
   x.title = NULL,
+  x.title.line = 0.3,
+  x.label.line = -0.65,
   y.label.cex = 5/6,
   bar.hex = 0.8,
   add.legend = TRUE,
   legend.xadj = -0.075,
+  major.legend = FALSE,
+  major.legend.colors = NULL,
+  major.legend.xadj = -0.04,
   annotate.counts = FALSE,
   end.label.xadj = -0.025,
   orient = "right",
+  custom.order = NULL,
   parmar = c(0.5, 3, 2.5, 0.5)
 )
 }
 \arguments{
 \item{major.values}{"Major" axis values; used for Y-axis groupings}
 
-\item{minor.values}{"Minor" axis values; will be depicted as stacked bars
-within each major axis group}
+\item{minor.values}{"Minor" axis values; if provided, will be depicted as
+stacked bars within each major axis group}
 
-\item{minor.colors}{Color assignments for "minor" axis values; see \code{Details}}
+\item{colors}{Color assignments for "minor" axis values; see \code{Details}}
 
 \item{x.title}{Optional title for X axis}
+
+\item{x.title.line}{Value of \code{title.line} passed to \code{\link[=clean.axis]{clean.axis()}}}
+
+\item{x.label.line}{Value of \code{label.line} passed to \code{\link[=clean.axis]{clean.axis()}}}
 
 \item{y.label.cex}{Cex parameter for Y-axis "major" group labels}
 
@@ -40,6 +50,14 @@ bottom-right of the plot? [default: add legend]}
 \item{legend.xadj}{Legend x-position adjustment, in relative user units.
 Only relevant if \code{add.legend} is \code{TRUE}. [default: -0.075]}
 
+\item{major.legend}{Should a major color legend be added between Y axis and
+labels? [default: FALSE]}
+
+\item{major.legend.colors}{Named vector mapping \code{major.values} to colors for
+\code{major.legend} [default: uniform greyscale]}
+
+\item{major.legend.xadj}{X adjustment scalar for major legend [default: -0.04]}
+
 \item{annotate.counts}{Should exact bar counts be annotated at the tip of
 each bar? [default: no annotations]}
 
@@ -49,11 +67,14 @@ Only relevant if \code{annotate.counts} is \code{TRUE}. [default: -0.025]}
 \item{orient}{Should the bar length be increasing to the \code{right} or
 \code{left}? [default: \code{right}]}
 
+\item{custom.order}{Specific order of major values to use for bars}
+
 \item{parmar}{Margin values passed to par()}
 
-\item{details}{By default, \code{minor.colors} will uniformly sample a grayscale palette and
-assign one color to each unique value present in \code{minor.values}. Alternatively,
-custom color assignments can be specified in the following ways:
+\item{details}{By default, \code{colors} will uniformly sample a grayscale palette and
+assign one color to each unique value present in \code{minor.values} (or \code{major.values},
+if \code{minor.values} is not specified). Alternatively, custom color assignments
+can be specified in the following ways:
 \enumerate{
 \item As a function to generate a palette, which will be used in place of the
 grayscale palette described above
@@ -62,7 +83,7 @@ vector elements map onto all unique values of \code{minor.values}
 }}
 }
 \description{
-Produce a stacked barplot of two categorical variables
+Produce a stacked barplot of one or two categorical variables
 }
 \examples{
 set.seed(2024)
