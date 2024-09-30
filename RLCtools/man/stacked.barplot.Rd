@@ -11,6 +11,7 @@ stacked.barplot(
   x.title = NULL,
   x.title.line = 0.3,
   x.label.line = -0.65,
+  x.axis.tck = -0.025,
   y.label.cex = 5/6,
   bar.hex = 0.8,
   add.legend = TRUE,
@@ -42,6 +43,8 @@ stacked bars within each major axis group}
 \item{x.title.line}{Value of \code{title.line} passed to \code{\link[=clean.axis]{clean.axis()}}}
 
 \item{x.label.line}{Value of \code{label.line} passed to \code{\link[=clean.axis]{clean.axis()}}}
+
+\item{x.axis.tck}{Value of \code{tck} passed to \code{\link[=clean.axis]{clean.axis()}}}
 
 \item{y.label.cex}{Cex parameter for Y-axis "major" group labels}
 

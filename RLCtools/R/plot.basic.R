@@ -765,6 +765,7 @@ density.w.outliers <- function(vals, style="density", min.complexity=30, bw.adj=
 #' @param x.title Optional title for X axis
 #' @param x.title.line Value of `title.line` passed to [RLCtools::clean.axis()]
 #' @param x.label.line Value of `label.line` passed to [RLCtools::clean.axis()]
+#' @param x.axis.tck Value of `tck` passed to [RLCtools::clean.axis()]
 #' @param y.label.cex Cex parameter for Y-axis "major" group labels
 #' @param bar.hex Width of bars relative to size of gap between bars. Setting
 #' `bar.hex == 1` will leave no gap between the bars
@@ -815,8 +816,8 @@ density.w.outliers <- function(vals, style="density", min.complexity=30, bw.adj=
 #' @export
 stacked.barplot <- function(major.values, minor.values=NULL, colors=NULL,
                             x.title=NULL, x.title.line=0.3, x.label.line=-0.65,
-                            y.label.cex=5/6, bar.hex=0.8, add.legend=TRUE,
-                            legend.xadj=-0.075, major.legend=FALSE,
+                            x.axis.tck=-0.025, y.label.cex=5/6, bar.hex=0.8,
+                            add.legend=TRUE, legend.xadj=-0.075, major.legend=FALSE,
                             major.legend.colors=NULL, major.legend.xadj=-0.04,
                             minor.labels.on.bars=FALSE, minor.label.letter.width=0.05,
                             minor.label.color=NULL, minor.label.cex=5/6,
@@ -866,7 +867,7 @@ stacked.barplot <- function(major.values, minor.values=NULL, colors=NULL,
   }
 
   # Prepare plot area
-  xlims <- c(0, max(major.table))
+  xlims <- c(0, max(major.table, na.rm=T))
   ylims <- c(length(major.table), 0)
   if(orient == "left"){
     xlims <- rev(xlims)
@@ -878,11 +879,11 @@ stacked.barplot <- function(major.values, minor.values=NULL, colors=NULL,
        labels=rownames(plot.df), line=if(major.legend){-0.4}else{-0.9})
   clean.axis(if(orient == "left"){1}else{3}, label.units="count",
              infinite.positive=TRUE, title=x.title, title.line=x.title.line,
-             label.line=x.label.line)
+             label.line=x.label.line, tck=x.axis.tck)
 
   # Add bars
   r.bar <- bar.hex / 2
-  sapply(1:nrow(major.table), function(major.idx){
+  sapply(1:length(major.table), function(major.idx){
     rect(xleft=c(0, cumsum(plot.df[major.idx, ]))[-(ncol(plot.df)+1)],
          xright=cumsum(plot.df[major.idx, ]),
          ybottom=major.idx - 0.5 - r.bar,
