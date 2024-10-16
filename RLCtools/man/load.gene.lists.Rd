@@ -15,3 +15,7 @@ list of gene symbol character vectors
 \description{
 Load one or more list(s) of gene symbols
 }
+\details{
+Will deduplicate the list before loading if there are any strictly
+identical rows in \code{input.tsv}
+}

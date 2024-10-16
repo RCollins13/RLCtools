@@ -20,10 +20,14 @@
 #'
 #' @returns list of gene symbol character vectors
 #'
+#' @details Will deduplicate the list before loading if there are any strictly
+#' identical rows in `input.tsv`
+#'
 #' @export load.gene.lists
 #' @export
 load.gene.lists <- function(input.tsv){
   info.df <- read.table(input.tsv, header=F, sep="\t")
+  info.df <- info.df[!duplicated(info.df), ]
   set.names <- info.df[, 1]
   sets <- lapply(info.df[, 2], function(path){sort(unique(read.table(path, header=F)[, 1]))})
   names(sets) <- set.names

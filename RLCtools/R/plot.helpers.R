@@ -423,13 +423,20 @@ categorical.rainbow <- function(n, hue.range=c(0, 1), saturation.range=c(0.5, 0.
 #' Generate a sequential greyscale palette that does not end at black & white
 #'
 #' @param n Number of colors in palette
+#' @param oscillate Should colors be interleaved to maximize contrast?
+#' \[default: `FALSE`, which provides a sequential greyscale palette\]
 #'
 #' @returns Character vector of hex colors
 #'
 #' @export greyscale.palette
 #' @export
-greyscale.palette <- function(n){
-  colorRampPalette(c("black", "white"))(n + 2)[-c(1, n + 2)]
+greyscale.palette <- function(n, oscillate=FALSE){
+  pal <- colorRampPalette(c("black", "white"))(n + 2)[-c(1, n + 2)]
+  if(oscillate){
+    return(pal[interleave(seq(1, n, by=2), seq(2*floor(n / 2), 2, by=-2))])
+  }else{
+    return(pal)
+  }
 }
 
 

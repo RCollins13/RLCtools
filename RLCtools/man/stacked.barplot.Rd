@@ -27,6 +27,7 @@ stacked.barplot(
   end.label.xadj = -0.025,
   orient = "right",
   custom.order = NULL,
+  sort.minor = FALSE,
   parmar = c(0.5, 3, 2.5, 0.5)
 )
 }
@@ -86,6 +87,9 @@ Only relevant if \code{annotate.counts} is \code{TRUE}. [default: -0.025]}
 \code{left}? [default: \code{right}]}
 
 \item{custom.order}{Specific order of major values to use for bars}
+
+\item{sort.minor}{Should minor labels be sorted by abundance prior to plotting?
+[default: alphabetically order minor labels]}
 
 \item{parmar}{Margin values passed to par()}
 

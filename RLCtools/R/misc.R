@@ -29,6 +29,22 @@ stretch.vector <- function(values, k){
 }
 
 
+#' Interleave two vectors
+#'
+#' Interleave values of two vectors
+#'
+#' @param v1 First vector
+#' @param v2 Second vector
+#'
+#' @export interleave
+#' @export
+interleave <- function(v1, v2){
+  ord1 <- 2*(1:length(v1))-1
+  ord2 <- 2*(1:length(v2))
+  c(v1, v2)[order(c(ord1, ord2))]
+}
+
+
 #' Impute missing values
 #'
 #' Impute missing values into a dataframe
