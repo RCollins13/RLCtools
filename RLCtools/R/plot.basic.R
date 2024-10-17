@@ -791,9 +791,11 @@ density.w.outliers <- function(vals, style="density", min.complexity=30, bw.adj=
 #' Only relevant if `annotate.counts` is `TRUE`. \[default: -0.025]
 #' @param orient Should the bar length be increasing to the `right` or
 #' `left`? \[default: `right`\]
-#' @param custom.order Specific order of major values to use for bars
+#' @param custom.major.order Specific order of major values to use for bars
+#' @param custom.minor.order Specific order of minor values to use for bars
 #' @param sort.minor Should minor labels be sorted by abundance prior to plotting?
-#' \[default: alphabetically order minor labels]
+#' Only used if `custom.minor.order` is `NULL`. \[default: alphabetically order
+#' minor labels]
 #' @param parmar Margin values passed to par()
 #'
 #' @param details
@@ -824,7 +826,8 @@ stacked.barplot <- function(major.values, minor.values=NULL, colors=NULL,
                             minor.labels.on.bars=FALSE, minor.label.letter.width=0.05,
                             minor.label.color=NULL, minor.label.cex=5/6,
                             annotate.counts=FALSE, end.label.xadj=-0.025,
-                            orient="right", custom.order=NULL, sort.minor=FALSE,
+                            orient="right", custom.major.order=NULL,
+                            custom.minor.order=NULL, sort.minor=FALSE,
                             parmar=c(0.5, 3, 2.5, 0.5)){
   # Check if minor values are provided
   no.minor <- is.null(minor.values)
@@ -845,16 +848,21 @@ stacked.barplot <- function(major.values, minor.values=NULL, colors=NULL,
   # Organize plot data
   major.table <- sort(table(major.values), decreasing=TRUE)
   minor.table <- table(sort(minor.values))
-  if(sort.minor){
+  if(!is.null(custom.minor.order)){
+    if(!all(length(union(names(minor.table), custom.minor.order)) %in% c(length(minor.table), length(custom.minor.order)))){
+      warning("Not all values of `custom.minor.order` appear in minor values (or vice versa)")
+    }
+    minor.table <- minor.table[custom.minor.order]
+  }else if(sort.minor){
     minor.table <- sort(minor.table, decreasing=TRUE)
   }
-  if(!is.null(custom.order)){
-    if(!all(length(union(names(major.table), custom.order)) %in% c(length(major.table), length(custom.order)))){
-      warning("Not all values of `custom.order` appear in major values (or vice versa)")
+  if(!is.null(custom.major.order)){
+    if(!all(length(union(names(major.table), custom.major.order)) %in% c(length(major.table), length(custom.major.order)))){
+      warning("Not all values of `custom.major.order` appear in major values (or vice versa)")
     }
-    major.table <- major.table[custom.order]
+    major.table <- major.table[custom.major.order]
     if(no.minor){
-      minor.table <- minor.table[custom.order]
+      minor.table <- minor.table[custom.major.order]
     }
   }
   plot.df <- do.call("rbind", lapply(names(major.table), function(major){

@@ -433,7 +433,8 @@ categorical.rainbow <- function(n, hue.range=c(0, 1), saturation.range=c(0.5, 0.
 greyscale.palette <- function(n, oscillate=FALSE){
   pal <- colorRampPalette(c("black", "white"))(n + 2)[-c(1, n + 2)]
   if(oscillate){
-    return(pal[interleave(seq(1, n, by=2), seq(2*floor(n / 2), 2, by=-2))])
+    split.idx <- ceiling(n / 2)
+    return(pal[interleave(1:split.idx, n:(split.idx+1))])
   }else{
     return(pal)
   }
