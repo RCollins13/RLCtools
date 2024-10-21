@@ -100,20 +100,55 @@ scatterplot <- function(X, Y, colors=NULL, title=NULL,
 #'
 #' Generate a ridgeplot using base R syntax
 #'
-#' @param data list of [density] objects to plot
-#' @param names optional list of names for Y axis \[default: take names from data\]
-#' @param hill.overlap relative fraction of overlap bewtween adjacent hills \[default: 0.35\]
-#' @param xlims custom X axis limits
-#' @param ylims custom Y axis limits
-#' @param fill vector of polygon fill colors \[default: "grey70"\]
-#' @param border vector of hill border colors \[default: "grey35"\]
-#' @param border.lwd line width for hill borders \[default: 2\]
-#' @param parmar vector of values passed to par(mar)
+#' @param data List of numeric vectors or [density()] objects to plot. See `Details`.
+#' @param bw.adj Numeric vector of `adjust` values passed to [density()] if `data`
+#' is provided as numeric vectors rather than pre-computed [density()] objects.
+#' See `Details`.
+#' @param names Optional list of names for Y axis \[default: take names from data\]
+#' @param hill.overlap Relative fraction of overlap bewtween adjacent hills \[default: 0.35\]
+#' @param x.axis.side `side` value for x-axis; `NA` will disable X-axis plotting. \[default: 1\]
+#' @param x.title Title for X axis \[default: "Values"\]
+#' @param x.title.line Value of `title.line` passed to [RLCtools::clean.axis()]
+#' @param x.label.line Value of `label.line` passed to [RLCtools::clean.axis()]
+#' @param xlims Custom X axis limits
+#' @param y.axis Should groups be labeled on the y-axis? \[default: TRUE\]
+#' @param ylims Custom Y axis limits
+#' @param yaxs Value of `yaxs` passed to [plot()] \[default: "r"\]
+#' @param fill Vector of polygon fill colors \[default: "grey70"\]
+#' @param border Vector of hill border colors \[default: "grey35"\]
+#' @param border.lwd Line width for hill borders \[default: 2\]
+#' @param hill.bottom Relative value (0-1) indicating the vertical starting
+#' position of each hill should be \[default: 0\]
+#' @param fancy.hills Should hills be shaded & marked like a boxplot? Can only
+#' be computed if `data` is provided as raw values, not pre-computed densities.
+#' \[default: TRUE\]
+#' @param fancy.light.fill Vector of colors to use for the sections of the
+#' distributions beyond the IQR. Only used if `fancy.hills` is `TRUE`
+#' \[default: "grey85"\]
+#' @param fancy.median.color Vector of colors to be used for median indicator if
+#' `fancy.hills` is `TRUE` \[default: "white"\]
+#' @param parmar Vector of values passed to par(mar)
+#'
+#' @details `data` can be provided either as a list of numeric vectors (one per
+#' hill to be plotted) or as a list of pre-computed [density()] objects.
+#'
+#' The type of `data` will be automatically checked prior to plotting and will
+#' be converted to [density()] if needed.
+#'
+#' Optionally, `bw.adj` can be supplied alongside a numeric vector-style `data`
+#' to customize the bandwidth for each hill. This vector will be recycled in the
+#' usual way following R conventions.
+#'
+#' @seealso [density()]
 #'
 #' @export ridgeplot
 #' @export
-ridgeplot <- function(data, names=NULL, hill.overlap=0.35, xlims=NULL, x.axis=TRUE,
-                      fill=NULL, border=NULL, border.lwd=2,
+ridgeplot <- function(data, bw.adj=NULL, names=NULL, hill.overlap=0.35, x.axis.side=1,
+                      x.title="Values", x.title.line=0.3, x.label.line=-0.65,
+                      xlims=NULL, y.axis=TRUE, ylims=NULL, yaxs="r",
+                      fill=NULL, border=NULL, border.lwd=2, hill.bottom=0,
+                      fancy.hills=TRUE, fancy.light.fill=NULL,
+                      fancy.median.color=NULL,
                       parmar=c(2.5, 3, 0.25, 0.25)){
   # Get names before manipulating data
   if(is.null(names)){
@@ -123,18 +158,50 @@ ridgeplot <- function(data, names=NULL, hill.overlap=0.35, xlims=NULL, x.axis=TR
     }
   }
 
-  # Scale Y values of data to [0, hill.overlap]
+  # Collect distribution statistics for fancy hills, if optioned & possible
+  if(fancy.hills & is.numeric(data[[1]])){
+    meds <- sapply(data, median, na.rm=T)
+    q1s <- sapply(data, quantile, prob=0.25, na.rm=T)
+    q3s <- sapply(data, quantile, prob=0.75, na.rm=T)
+  }else{
+    fancy.hills <- FALSE
+  }
+
+  # Coerce data to KDE if needed
+  if(is.numeric(data[[1]])){
+    if(is.null(bw.adj)){
+      bw.adj <- rep(1, length(data))
+    }
+    if(length(bw.adj) < length(data)){
+      bw.adj <- rep(bw.adj, length(data) / length(bw.adj))
+    }
+    data <- lapply(1:length(data), function(i){
+      if(length(data[[i]]) > 1){
+        density(data[[i]], adjust=bw.adj[i])
+      }else{
+        NULL
+      }
+    })
+    names(data) <- names
+  }
+
+  # Scale Y values of data to [hill.bottom, hill.overlap]
   for(i in 1:length(data)){
-    y <- data[[i]]$y
-    data[[i]]$y <- (1 + hill.overlap) * (y / max(y))
+    if(!is.null(data[[i]])){
+      y <- data[[i]]$y
+      y <- y - min(y)
+      data[[i]]$y <- ((1 + hill.overlap - hill.bottom) * (y / max(y))) + hill.bottom
+    }
   }
 
   # Get plot dimensions
   if(is.null(xlims)){
-    xlims <- c(min(sapply(data, function(d){min(d$x)})),
-               max(sapply(data, function(d){max(d$x)})))
+    xlims <- c(min(sapply(data, function(d){min(d$x, na.rm=T)})),
+               max(sapply(data, function(d){max(d$x, na.rm=T)})))
   }
-  ylims <- c(0, length(data) + hill.overlap)
+  if(is.null(ylims)){
+    ylims <- c(0, length(data) + max(c(0, hill.overlap)))
+  }
 
   # Get ridge colors
   if(is.null(fill)){
@@ -146,22 +213,62 @@ ridgeplot <- function(data, names=NULL, hill.overlap=0.35, xlims=NULL, x.axis=TR
   if(is.null(border)){
     border <- rep("grey35", length(data))
   }
+  if(length(border) < length(data)){
+    border <- rep(border, length(data) / length(border))
+  }
+  if(fancy.hills){
+    if(is.null(fancy.light.fill)){
+      fancy.light.fill <- rep("grey85", length(data))
+    }
+    if(length(fancy.light.fill) < length(data)){
+      fancy.light.fill <- rep(fancy.light.fill, length(data) / length(fancy.light.fill))
+    }
+    if(is.null(fancy.median.color)){
+      fancy.median.color <- rep("white", length(data))
+    }
+    if(length(fancy.median.color) < length(data)){
+      fancy.median.color <- rep(fancy.median.color, length(data) / length(fancy.median.color))
+    }
+  }
 
   # Prep plot area
-  prep.plot.area(xlims, ylims, parmar, xaxs="i", yaxs="r")
-  median(unlist(sapply(data, function(df){df$y})), na.rm=T)
-  if(x.axis){
-    clean.axis(1, title="Values", infinite=TRUE)
+  prep.plot.area(xlims, ylims, parmar, xaxs="i", yaxs=yaxs)
+  if(!is.na(x.axis.side)){
+    clean.axis(x.axis.side, title=x.title, infinite=TRUE,
+               label.line=x.label.line, title.line=x.title.line)
   }
-  axis(2, at=(1:length(data)) - 0.5, tick=F, las=2, line=-0.8, labels=names)
+  if(y.axis){
+    axis(2, at=(1:length(data)) - 0.5, tick=F, las=2, line=-0.8, labels=names)
+  }
 
   # Add hills
   sapply(length(data):1, function(i){
-    abline(h=i-1, col="gray85")
-    x <- c(data[[i]]$x, rev(data[[i]]$x))
-    y <- c(data[[i]]$y, rep(0, times=length(data[[i]]$y)))+i-1
-    polygon(x, y, border=fill[i], col=fill[i], lwd=border.lwd)
-    points(data[[i]]$x, data[[i]]$y+i-1, type="l", lwd=border.lwd, col=border)
+    abline(h=i-1+hill.bottom, col="gray85")
+    if(is.null(data[[i]])){
+      text(x=mean(par("usr")[1:2]), y=mean(c(i-1+hill.bottom, i)),
+           cex=5/6, labels="No data", font=3, col="gray80")
+    }else{
+      x <- c(data[[i]]$x, rev(data[[i]]$x))
+      y <- c(data[[i]]$y, rep(hill.bottom, times=length(data[[i]]$y)))+i-1
+      if(fancy.hills){
+        left.idx <- which(x < q1s[i])
+        mid.idx <- which(x >= q1s[i] & x <= q3s[i])
+        right.idx <- which(x > q3s[i])
+        polygon(x, y, border=NA, col="white", xpd=T)
+        polygon(x[left.idx], y[left.idx], border=fancy.light.fill[i],
+                col=fancy.light.fill[i], xpd=T)
+        polygon(x[right.idx], y[right.idx], border=fancy.light.fill[i],
+                col=fancy.light.fill[i], xpd=T)
+        polygon(x[mid.idx], y[mid.idx], border=fill[i], col=fill[i], xpd=T)
+        segments(x0=meds[i], x1=meds[i],
+                 y0=i-1+hill.bottom, y1=y[which.min(abs(meds[i] - x))],
+                 lwd=border.lwd, col=fancy.median.color[i], xpd=T, lend="square")
+      }else{
+        polygon(x, y, border=fill[i], col=fill[i], lwd=border.lwd, xpd=T)
+      }
+      points(data[[i]]$x, data[[i]]$y+i-1, type="l", lwd=border.lwd,
+             col=border[i], xpd=T)
+    }
   })
 }
 
@@ -762,6 +869,16 @@ density.w.outliers <- function(vals, style="density", min.complexity=30, bw.adj=
 #' @param minor.values "Minor" axis values; if provided, will be depicted as
 #' stacked bars within each major axis group
 #' @param colors Color assignments for "minor" axis values; see `Details`
+#' @param inner.borders Color assignments for minor segment inner.borders
+#' \[default: "white"\]
+#' @param outer.borders Color assignment for outer border \[default: "black\]
+#' @param outer.border.lwd `lwd` parameter for outer border \[default: 1\]
+#' @param as.proportion Should values be plotted on a relative (proportional /
+#' percentage) scale? \[default: FALSE, i.e., plot raw counts\]
+#' @param add.major.labels Should major (y-axis) groups be labeled in the margin?
+#' \[default: TRUE\]
+#' @param x.axis.side `side` value for x-axis; `NA` will disable X-axis plotting.
+#' \[default: 3 (top axis)\]
 #' @param x.title Optional title for X axis
 #' @param x.title.line Value of `title.line` passed to [RLCtools::clean.axis()]
 #' @param x.label.line Value of `label.line` passed to [RLCtools::clean.axis()]
@@ -819,16 +936,19 @@ density.w.outliers <- function(vals, style="density", min.complexity=30, bw.adj=
 #' @export stacked.barplot
 #' @export
 stacked.barplot <- function(major.values, minor.values=NULL, colors=NULL,
-                            x.title=NULL, x.title.line=0.3, x.label.line=-0.65,
+                            inner.borders=NULL, outer.borders=NULL,
+                            outer.border.lwd=1, as.proportion=FALSE,
+                            add.major.labels=TRUE, x.axis.side=3, x.title=NULL,
+                            x.title.line=0.3, x.label.line=-0.65,
                             x.axis.tck=-0.025, y.label.cex=5/6, bar.hex=0.8,
-                            add.legend=TRUE, legend.xadj=-0.075, major.legend=FALSE,
-                            major.legend.colors=NULL, major.legend.xadj=-0.04,
-                            minor.labels.on.bars=FALSE, minor.label.letter.width=0.05,
-                            minor.label.color=NULL, minor.label.cex=5/6,
-                            annotate.counts=FALSE, end.label.xadj=-0.025,
-                            orient="right", custom.major.order=NULL,
-                            custom.minor.order=NULL, sort.minor=FALSE,
-                            parmar=c(0.5, 3, 2.5, 0.5)){
+                            add.legend=TRUE, legend.xadj=-0.075,
+                            major.legend=FALSE, major.legend.colors=NULL,
+                            major.legend.xadj=-0.04, minor.labels.on.bars=FALSE,
+                            minor.label.letter.width=0.05, minor.label.color=NULL,
+                            minor.label.cex=5/6, annotate.counts=FALSE,
+                            end.label.xadj=-0.025, orient="right",
+                            custom.major.order=NULL, custom.minor.order=NULL,
+                            sort.minor=FALSE, parmar=c(0.5, 3, 2.5, 0.5)){
   # Check if minor values are provided
   no.minor <- is.null(minor.values)
   if(no.minor){
@@ -870,6 +990,10 @@ stacked.barplot <- function(major.values, minor.values=NULL, colors=NULL,
       length(which(major.values == major & minor.values == minor))
     })
   }))
+  if(as.proportion){
+    plot.df <- t(apply(plot.df, 1, function(vals){vals / sum(vals)}))
+  }
+  plot.df <- as.data.frame(plot.df)
   rownames(plot.df) <- names(major.table)
   bar.hex <- min(c(bar.hex, 1))
 
@@ -878,35 +1002,56 @@ stacked.barplot <- function(major.values, minor.values=NULL, colors=NULL,
     colors <- greyscale.palette(length(minor.table))
     names(colors) <- names(minor.table)
   }
+  if(is.null(inner.borders)){
+    inner.borders <- rep("white", length(minor.table))
+    names(inner.borders) <- names(minor.table)
+  }
+  if(length(inner.borders) < length(minor.table)){
+    inner.borders <- rep(inner.borders, length(minor.table) / length(inner.borders))
+    names(inner.borders) <- names(minor.table)
+  }
+  if(is.null(outer.borders)){
+    outer.borders <- rep("black", length(major.table))
+    names(outer.borders) <- names(major.table)
+  }
+  if(length(outer.borders) < length(major.table)){
+    outer.borders <- rep(outer.borders, length(major.table) / length(outer.borders))
+    names(outer.borders) <- names(major.table)
+  }
 
   # Prepare plot area
-  xlims <- c(0, max(major.table, na.rm=T))
+  xlims <- c(0, if(as.proportion){1}else{max(major.table, na.rm=T)})
   ylims <- c(length(major.table), 0)
   if(orient == "left"){
     xlims <- rev(xlims)
     ylims <- rev(ylims)
   }
   prep.plot.area(xlims, ylims, parmar=parmar)
-  axis(if(orient == "left"){4}else{2},
-       at=(1:nrow(plot.df)) - 0.5, tick=F, las=2, cex.axis=y.label.cex,
-       labels=rownames(plot.df), line=if(major.legend){-0.4}else{-0.9})
-  clean.axis(if(orient == "left"){1}else{3}, label.units="count",
-             infinite.positive=TRUE, title=x.title, title.line=x.title.line,
-             label.line=x.label.line, tck=x.axis.tck)
+  if(add.major.labels){
+    axis(if(orient == "left"){4}else{2},
+         at=(1:nrow(plot.df)) - 0.5, tick=F, las=2, cex.axis=y.label.cex,
+         labels=rownames(plot.df), line=if(major.legend){-0.4}else{-0.9})
+  }
+  if(!is.na(x.axis.side)){
+    clean.axis(x.axis.side, label.units=if(as.proportion){"percent"}else{"count"},
+               infinite.positive=TRUE, title=x.title, title.line=x.title.line,
+               label.line=x.label.line, tck=x.axis.tck)
+  }
 
   # Add bars
   r.bar <- bar.hex / 2
   sapply(1:length(major.table), function(major.idx){
-    rect(xleft=c(0, cumsum(plot.df[major.idx, ]))[-(ncol(plot.df)+1)],
-         xright=cumsum(plot.df[major.idx, ]),
+    rect(xleft=c(0, cumsum(unlist(plot.df[major.idx, ])))[-(ncol(plot.df)+1)],
+         xright=cumsum(unlist(plot.df[major.idx, ])),
          ybottom=major.idx - 0.5 - r.bar,
          ytop=major.idx -0.5 + r.bar,
          col=colors[colnames(plot.df)],
-         border=NA, bty="n")
-    rect(xleft=0, xright=major.table[major.idx],
+         border=inner.borders[colnames(plot.df)], lwd=0.5)
+    rect(xleft=0, xright=apply(plot.df, 1, sum, na.rm=T)[major.idx],
          ybottom=major.idx - 0.5 - r.bar,
          ytop=major.idx -0.5 + r.bar,
-         col=NA, xpd=T)
+         col=NA, xpd=T, border=outer.borders[rownames(plot.df)[major.idx]],
+         lwd=outer.border.lwd)
   })
 
   # If optioned, print key codes on physical bars where space permits
@@ -915,7 +1060,7 @@ stacked.barplot <- function(major.values, minor.values=NULL, colors=NULL,
     sapply(1:ncol(prop.df), function(k){
       if(any(prop.df[, k] > 0)){
         longest.idx <- head(which.max(prop.df[, k]), 1)
-        longest.x <- mean(c(0, cumsum(plot.df[longest.idx, ]))[c(k, k+1)])
+        longest.x <- mean(c(0, cumsum(unlist(plot.df[longest.idx, ])))[c(k, k+1)])
         label <- colnames(plot.df)[k]
         room <- prop.df[longest.idx, k]
         if(nchar(label) > room){
@@ -936,8 +1081,8 @@ stacked.barplot <- function(major.values, minor.values=NULL, colors=NULL,
     legend.colors <- colors[intersect(names(sort(-minor.table)), names(colors))]
     if(orient == "left"){
       legend(x=par("usr")[1] + (legend.xadj * diff(par("usr")[1:2])),
-      y=par("usr")[4],
-      names(legend.colors), fill=legend.colors, cex=5/6, bty="n", xpd=T)
+             y=par("usr")[4],
+             names(legend.colors), fill=legend.colors, cex=5/6, bty="n", xpd=T)
     }else{
       legend("bottomright", names(legend.colors), fill=legend.colors,
              cex=5/6, bty="n", xpd=T)

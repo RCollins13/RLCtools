@@ -8,6 +8,12 @@ stacked.barplot(
   major.values,
   minor.values = NULL,
   colors = NULL,
+  inner.borders = NULL,
+  outer.borders = NULL,
+  outer.border.lwd = 1,
+  as.proportion = FALSE,
+  add.major.labels = TRUE,
+  x.axis.side = 3,
   x.title = NULL,
   x.title.line = 0.3,
   x.label.line = -0.65,
@@ -26,7 +32,8 @@ stacked.barplot(
   annotate.counts = FALSE,
   end.label.xadj = -0.025,
   orient = "right",
-  custom.order = NULL,
+  custom.major.order = NULL,
+  custom.minor.order = NULL,
   sort.minor = FALSE,
   parmar = c(0.5, 3, 2.5, 0.5)
 )
@@ -38,6 +45,22 @@ stacked.barplot(
 stacked bars within each major axis group}
 
 \item{colors}{Color assignments for "minor" axis values; see \code{Details}}
+
+\item{inner.borders}{Color assignments for minor segment inner.borders
+[default: "white"]}
+
+\item{outer.borders}{Color assignment for outer border [default: "black]}
+
+\item{outer.border.lwd}{\code{lwd} parameter for outer border [default: 1]}
+
+\item{as.proportion}{Should values be plotted on a relative (proportional /
+percentage) scale? [default: FALSE, i.e., plot raw counts]}
+
+\item{add.major.labels}{Should major (y-axis) groups be labeled in the margin?
+[default: TRUE]}
+
+\item{x.axis.side}{\code{side} value for x-axis; \code{NA} will disable X-axis plotting.
+[default: 3 (top axis)]}
 
 \item{x.title}{Optional title for X axis}
 
@@ -86,10 +109,13 @@ Only relevant if \code{annotate.counts} is \code{TRUE}. [default: -0.025]}
 \item{orient}{Should the bar length be increasing to the \code{right} or
 \code{left}? [default: \code{right}]}
 
-\item{custom.order}{Specific order of major values to use for bars}
+\item{custom.major.order}{Specific order of major values to use for bars}
+
+\item{custom.minor.order}{Specific order of minor values to use for bars}
 
 \item{sort.minor}{Should minor labels be sorted by abundance prior to plotting?
-[default: alphabetically order minor labels]}
+Only used if \code{custom.minor.order} is \code{NULL}. [default: alphabetically order
+minor labels]}
 
 \item{parmar}{Margin values passed to par()}
 

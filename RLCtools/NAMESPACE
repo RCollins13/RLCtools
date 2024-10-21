@@ -3,6 +3,7 @@
 S3method(density,w.outliers)
 S3method(format,pval)
 S3method(plot,qq)
+export(adjust.brightness)
 export(categorical.rainbow)
 export(clean.axis)
 export(color.points.by.density)

@@ -458,3 +458,21 @@ optimize.label.color <- function(bg.color, cutoff=0.7){
   if(v >= cutoff){"black"}else{"white"}
 }
 
+
+#' Adjust color brightness
+#'
+#' Adjust brightness of one or more colors via conversion to HSV colorspace
+#'
+#' @param colors Character vector of one or more colors in hex format
+#' @param d Adjustment for brightness
+#'
+#' @details Final brightness will be bounded within \[0, 1\]
+#'
+#' @export adjust.brightness
+#' @export
+adjust.brightness <- function(colors, d){
+  require(DescTools)
+  c.v <- DescTools::ColToHsv(colors)
+  c.v[3, ] <- sapply(c.v[3, ] + d, function(v){max(c(0, min(c(1, v))))})
+  apply(c.v, 2, function(cc){hsv(cc[1], cc[2], cc[3])})
+}

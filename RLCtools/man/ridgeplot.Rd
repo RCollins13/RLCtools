@@ -6,35 +6,90 @@
 \usage{
 ridgeplot(
   data,
+  bw.adj = NULL,
   names = NULL,
   hill.overlap = 0.35,
+  x.axis.side = 1,
+  x.title = "Values",
+  x.title.line = 0.3,
+  x.label.line = -0.65,
   xlims = NULL,
-  x.axis = TRUE,
+  y.axis = TRUE,
+  ylims = NULL,
+  yaxs = "r",
   fill = NULL,
   border = NULL,
   border.lwd = 2,
+  hill.bottom = 0,
+  fancy.hills = TRUE,
+  fancy.light.fill = NULL,
+  fancy.median.color = NULL,
   parmar = c(2.5, 3, 0.25, 0.25)
 )
 }
 \arguments{
-\item{data}{list of \link{density} objects to plot}
+\item{data}{List of numeric vectors or \code{\link[=density]{density()}} objects to plot. See \code{Details}.}
 
-\item{names}{optional list of names for Y axis [default: take names from data]}
+\item{bw.adj}{Numeric vector of \code{adjust} values passed to \code{\link[=density]{density()}} if \code{data}
+is provided as numeric vectors rather than pre-computed \code{\link[=density]{density()}} objects.
+See \code{Details}.}
 
-\item{hill.overlap}{relative fraction of overlap bewtween adjacent hills [default: 0.35]}
+\item{names}{Optional list of names for Y axis [default: take names from data]}
 
-\item{xlims}{custom X axis limits}
+\item{hill.overlap}{Relative fraction of overlap bewtween adjacent hills [default: 0.35]}
 
-\item{fill}{vector of polygon fill colors [default: "grey70"]}
+\item{x.axis.side}{\code{side} value for x-axis; \code{NA} will disable X-axis plotting. [default: 1]}
 
-\item{border}{vector of hill border colors [default: "grey35"]}
+\item{x.title}{Title for X axis [default: "Values"]}
 
-\item{border.lwd}{line width for hill borders [default: 2]}
+\item{x.title.line}{Value of \code{title.line} passed to \code{\link[=clean.axis]{clean.axis()}}}
 
-\item{parmar}{vector of values passed to par(mar)}
+\item{x.label.line}{Value of \code{label.line} passed to \code{\link[=clean.axis]{clean.axis()}}}
 
-\item{ylims}{custom Y axis limits}
+\item{xlims}{Custom X axis limits}
+
+\item{y.axis}{Should groups be labeled on the y-axis? [default: TRUE]}
+
+\item{ylims}{Custom Y axis limits}
+
+\item{yaxs}{Value of \code{yaxs} passed to \code{\link[=plot]{plot()}} [default: "r"]}
+
+\item{fill}{Vector of polygon fill colors [default: "grey70"]}
+
+\item{border}{Vector of hill border colors [default: "grey35"]}
+
+\item{border.lwd}{Line width for hill borders [default: 2]}
+
+\item{hill.bottom}{Relative value (0-1) indicating the vertical starting
+position of each hill should be [default: 0]}
+
+\item{fancy.hills}{Should hills be shaded & marked like a boxplot? Can only
+be computed if \code{data} is provided as raw values, not pre-computed densities.
+[default: TRUE]}
+
+\item{fancy.light.fill}{Vector of colors to use for the sections of the
+distributions beyond the IQR. Only used if \code{fancy.hills} is \code{TRUE}
+[default: "grey85"]}
+
+\item{fancy.median.color}{Vector of colors to be used for median indicator if
+\code{fancy.hills} is \code{TRUE} [default: "white"]}
+
+\item{parmar}{Vector of values passed to par(mar)}
 }
 \description{
 Generate a ridgeplot using base R syntax
+}
+\details{
+\code{data} can be provided either as a list of numeric vectors (one per
+hill to be plotted) or as a list of pre-computed \code{\link[=density]{density()}} objects.
+
+The type of \code{data} will be automatically checked prior to plotting and will
+be converted to \code{\link[=density]{density()}} if needed.
+
+Optionally, \code{bw.adj} can be supplied alongside a numeric vector-style \code{data}
+to customize the bandwidth for each hill. This vector will be recycled in the
+usual way following R conventions.
+}
+\seealso{
+\code{\link[=density]{density()}}
 }
