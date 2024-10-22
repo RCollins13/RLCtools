@@ -1028,9 +1028,11 @@ stacked.barplot <- function(major.values, minor.values=NULL, colors=NULL,
   }
   prep.plot.area(xlims, ylims, parmar=parmar)
   if(add.major.labels){
-    axis(if(orient == "left"){4}else{2},
-         at=(1:nrow(plot.df)) - 0.5, tick=F, las=2, cex.axis=y.label.cex,
-         labels=rownames(plot.df), line=if(major.legend){-0.4}else{-0.9})
+    sapply(1:nrow(plot.df), function(y){
+      axis(if(orient == "left"){4}else{2},
+           at=y-0.5, tick=F, las=2, cex.axis=y.label.cex,
+           labels=rownames(plot.df)[y], line=if(major.legend){-0.4}else{-0.9})
+    })
   }
   if(!is.na(x.axis.side)){
     clean.axis(x.axis.side, label.units=if(as.proportion){"percent"}else{"count"},
