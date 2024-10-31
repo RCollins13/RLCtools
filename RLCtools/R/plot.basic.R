@@ -110,6 +110,8 @@ scatterplot <- function(X, Y, colors=NULL, title=NULL,
 #' @param x.title Title for X axis \[default: "Values"\]
 #' @param x.title.line Value of `title.line` passed to [RLCtools::clean.axis()]
 #' @param x.label.line Value of `label.line` passed to [RLCtools::clean.axis()]
+#' @param max.x.ticks Value of `max.ticks` passed to [RLCtools::clean.axis()] \[default: 6\]
+#' @param x.tick.len Value of `tck` passed to [RLCtools::clean.axis()] \[default: -0.025\]
 #' @param xlims Custom X axis limits
 #' @param y.axis Should groups be labeled on the y-axis? \[default: TRUE\]
 #' @param ylims Custom Y axis limits
@@ -143,12 +145,12 @@ scatterplot <- function(X, Y, colors=NULL, title=NULL,
 #'
 #' @export ridgeplot
 #' @export
-ridgeplot <- function(data, bw.adj=NULL, names=NULL, hill.overlap=0.35, x.axis.side=1,
-                      x.title="Values", x.title.line=0.3, x.label.line=-0.65,
-                      xlims=NULL, y.axis=TRUE, ylims=NULL, yaxs="r",
-                      fill=NULL, border=NULL, border.lwd=2, hill.bottom=0,
-                      fancy.hills=TRUE, fancy.light.fill=NULL,
-                      fancy.median.color=NULL,
+ridgeplot <- function(data, bw.adj=NULL, names=NULL, hill.overlap=0.35,
+                      x.axis.side=1, x.title="Values", x.title.line=0.3,
+                      x.label.line=-0.65, max.x.ticks=6, x.tick.len=-0.025,
+                      xlims=NULL, y.axis=TRUE, ylims=NULL, yaxs="r", fill=NULL,
+                      border=NULL, border.lwd=2, hill.bottom=0, fancy.hills=TRUE,
+                      fancy.light.fill=NULL, fancy.median.color=NULL,
                       parmar=c(2.5, 3, 0.25, 0.25)){
   # Get names before manipulating data
   if(is.null(names)){
@@ -234,8 +236,8 @@ ridgeplot <- function(data, bw.adj=NULL, names=NULL, hill.overlap=0.35, x.axis.s
   # Prep plot area
   prep.plot.area(xlims, ylims, parmar, xaxs="i", yaxs=yaxs)
   if(!is.na(x.axis.side)){
-    clean.axis(x.axis.side, title=x.title, infinite=TRUE,
-               label.line=x.label.line, title.line=x.title.line)
+    clean.axis(x.axis.side, title=x.title, infinite=TRUE, max.ticks=max.x.ticks,
+               label.line=x.label.line, title.line=x.title.line, tck=x.tick.len)
   }
   if(y.axis){
     axis(2, at=(1:length(data)) - 0.5, tick=F, las=2, line=-0.8, labels=names)
@@ -906,6 +908,7 @@ density.w.outliers <- function(vals, style="density", min.complexity=30, bw.adj=
 #' each bar? \[default: no annotations\]
 #' @param end.label.xadj End-label x-position adjustment, in relative user units.
 #' Only relevant if `annotate.counts` is `TRUE`. \[default: -0.025]
+#' @param end.label.cex Character expansion parameter for end label text \[default: 5/6\]
 #' @param orient Should the bar length be increasing to the `right` or
 #' `left`? \[default: `right`\]
 #' @param custom.major.order Specific order of major values to use for bars
@@ -946,9 +949,10 @@ stacked.barplot <- function(major.values, minor.values=NULL, colors=NULL,
                             major.legend.xadj=-0.04, minor.labels.on.bars=FALSE,
                             minor.label.letter.width=0.05, minor.label.color=NULL,
                             minor.label.cex=5/6, annotate.counts=FALSE,
-                            end.label.xadj=-0.025, orient="right",
-                            custom.major.order=NULL, custom.minor.order=NULL,
-                            sort.minor=FALSE, parmar=c(0.5, 3, 2.5, 0.5)){
+                            end.label.xadj=-0.025, end.label.cex=5/6,
+                            orient="right", custom.major.order=NULL,
+                            custom.minor.order=NULL, sort.minor=FALSE,
+                            parmar=c(0.5, 3, 2.5, 0.5)){
   # Check if minor values are provided
   no.minor <- is.null(minor.values)
   if(no.minor){
@@ -1066,7 +1070,11 @@ stacked.barplot <- function(major.values, minor.values=NULL, colors=NULL,
         label <- colnames(plot.df)[k]
         room <- prop.df[longest.idx, k]
         if(nchar(label) > room){
-          label <- paste(substr(label, 1, room), ".", sep="")
+          if(room == 1){
+            label <- substr(label, 1, 1)
+          }else{
+            label <- paste(substr(label, 1, room), ".", sep="")
+          }
         }
         lab.col <- minor.label.color
         if(is.null(lab.col)){
@@ -1108,8 +1116,7 @@ stacked.barplot <- function(major.values, minor.values=NULL, colors=NULL,
     bar.ends <- apply(plot.df, 1, sum, na.rm=T)
     end.xadj <- if(orient == "left"){-end.label.xadj}else{end.label.xadj}
     text(x=bar.ends + (end.xadj * diff(par("usr")[1:2])),
-         y=(1:nrow(plot.df)) - 0.5,
-         labels=prettyNum(bar.ends, big.mark=","),
-         cex=5/6, pos=if(orient == "left"){2}else{4}, xpd=T)
+         y=(1:nrow(plot.df)) - 0.5, labels=prettyNum(bar.ends, big.mark=","),
+         cex=end.label.cex, pos=if(orient == "left"){2}else{4}, xpd=T)
   }
 }

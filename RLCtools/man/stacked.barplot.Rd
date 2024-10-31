@@ -31,6 +31,7 @@ stacked.barplot(
   minor.label.cex = 5/6,
   annotate.counts = FALSE,
   end.label.xadj = -0.025,
+  end.label.cex = 5/6,
   orient = "right",
   custom.major.order = NULL,
   custom.minor.order = NULL,
@@ -105,6 +106,8 @@ each bar? [default: no annotations]}
 
 \item{end.label.xadj}{End-label x-position adjustment, in relative user units.
 Only relevant if \code{annotate.counts} is \code{TRUE}. [default: -0.025]}
+
+\item{end.label.cex}{Character expansion parameter for end label text [default: 5/6]}
 
 \item{orient}{Should the bar length be increasing to the \code{right} or
 \code{left}? [default: \code{right}]}

@@ -13,6 +13,8 @@ ridgeplot(
   x.title = "Values",
   x.title.line = 0.3,
   x.label.line = -0.65,
+  max.x.ticks = 6,
+  x.tick.len = -0.025,
   xlims = NULL,
   y.axis = TRUE,
   ylims = NULL,
@@ -45,6 +47,10 @@ See \code{Details}.}
 \item{x.title.line}{Value of \code{title.line} passed to \code{\link[=clean.axis]{clean.axis()}}}
 
 \item{x.label.line}{Value of \code{label.line} passed to \code{\link[=clean.axis]{clean.axis()}}}
+
+\item{max.x.ticks}{Value of \code{max.ticks} passed to \code{\link[=clean.axis]{clean.axis()}} [default: 6]}
+
+\item{x.tick.len}{Value of \code{tck} passed to \code{\link[=clean.axis]{clean.axis()}} [default: -0.025]}
 
 \item{xlims}{Custom X axis limits}
 
