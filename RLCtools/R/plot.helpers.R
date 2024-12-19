@@ -90,10 +90,12 @@ clean.axis <- function(side, at=NULL, labels=NULL, labels.at=NULL, label.units=N
         k.best <- length(which(lab.logs >= 3 & lab.logs < 6))
         M.best <- length(which(lab.logs > 5))
         if(M.best > 0){
-          labels <- prettyNum(round(as.numeric(labels) / 1000000, 1), big.mark=",")
+          at <- sort(1000000 * unique(round(as.numeric(labels) / 1000000, 1)))
+          labels <- prettyNum(at / 1000000, big.mark=",")
           labels <- paste(labels, "M", sep="")
         }else if(k.best >= raw.best){
-          labels <- prettyNum(round(as.numeric(labels) / 1000, 0), big.mark=",")
+          at <- sort(1000 * unique(round(as.numeric(labels) / 1000, 1)))
+          labels <- prettyNum(at / 1000, big.mark=",")
           labels <- paste(labels, "k", sep="")
         }else{
           labels <- prettyNum(labels, big.mark=",")
@@ -261,7 +263,7 @@ smart.spacing <- function(ideal.values, min.dist, lower.limit=-Inf, upper.limit=
   # Iteratively update spacing until best balance is reached
   calc.spacing <- function(ideal.sorted, sig.digits=10){
     round(ideal.sorted[-1] - ideal.sorted[-length(ideal.sorted)], sig.digits)
-    }
+  }
   spacing <- calc.spacing(ideal.sorted)
   while(any(spacing < min.dist)){
     # Save old spacing info to check for convergence
@@ -475,4 +477,31 @@ adjust.brightness <- function(colors, d){
   c.v <- DescTools::ColToHsv(colors)
   c.v[3, ] <- sapply(c.v[3, ] + d, function(v){max(c(0, min(c(1, v))))})
   apply(c.v, 2, function(cc){hsv(cc[1], cc[2], cc[3])})
+}
+
+
+#' Title case conversion
+#'
+#' Convert a character vector to title (or, optionally, sentence) case
+#'
+#' @param x Character vector to be converted
+#' @param case Either `title` or `sentence`
+#'
+#' @returns Character vector `x` in desired case
+#'
+#' @export title.case
+#' @export
+title.case <- function(x, case="title"){
+  as.character(sapply(x, function(s){
+    if(case == "sentence"){
+      paste(toupper(substr(s, 1, 1)),
+            tolower(substr(s, 2, nchar(s))),
+            sep="")
+    }else{
+      paste(sapply(strsplit(s, split=" "), function(ss){
+        paste(toupper(substr(ss, 1, 1)),
+              tolower(substr(ss, 2, nchar(ss))),
+              sep="")}), collapse=" ")
+    }
+  }))
 }

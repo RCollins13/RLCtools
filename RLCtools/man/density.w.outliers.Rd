@@ -9,14 +9,23 @@
   style = "density",
   min.complexity = 30,
   bw.adj = 1,
+  min.bin.width = NULL,
   outlier.lower.bound = NULL,
   outlier.upper.bound = NULL,
   outlier.tick.hex = 0.02,
-  color = "gray80",
+  color = "gray70",
+  border = "black",
+  outlier.color = NULL,
   title = NULL,
+  title.line = 0.1,
+  xlims = NULL,
   x.title = NULL,
+  x.title.line = 0.5,
   x.label.units = NULL,
+  max.x.ticks = 6,
+  add.y.axis = TRUE,
   y.title = NULL,
+  y.title.line = 0.5,
   outlier.lwd = 1/3,
   parmar = c(2, 2, 0.35, 0.35)
 )
@@ -32,6 +41,9 @@ automatically defaulting to \code{style == "hist"} [default: 30]}
 
 \item{bw.adj}{Bandwidth adjustment for density estimation. See \code{adjust} in \code{\link[stats:density]{stats::density()}}.}
 
+\item{min.bin.width}{Minimum permissible bin width. Only used if \code{style == "hist"}.
+[default: automatically determine optimal bin width]}
+
 \item{outlier.lower.bound}{Threshold below which an observation is treated
 as an outlier [default: Q1 - 3*IQR]}
 
@@ -42,13 +54,29 @@ as an outlier [default: Q3 + 3*IQR]}
 
 \item{color}{Color for density area [default: "gray80"]}
 
+\item{border}{Color for density border [default: "black"]}
+
+\item{outlier.color}{Color for outlier ticks [default: same value is \code{border}]}
+
 \item{title}{(Optional) Title for plot}
+
+\item{title.line}{Line for \code{title} [default: 0.1]}
+
+\item{xlims}{Enforce custom X-axis limits [default: plot entire range of values]}
 
 \item{x.title}{Title for X-axis [default: no title]}
 
+\item{x.title.line}{Line for \code{x.title} [default: 0.5]}
+
 \item{x.label.units}{Units for X-axis labels; passed to \code{\link[=clean.axis]{clean.axis()}}}
 
+\item{max.x.ticks}{Maximum number of ticks for X-axis [default: 5]}
+
+\item{add.y.axis}{Should a Y-axis be plotted? [default: TRUE]}
+
 \item{y.title}{Title for Y-axis [default: no title]}
+
+\item{y.title.line}{Line for \code{y.title} [default: 0.5]}
 
 \item{outlier.lwd}{Line width for outlier ticks [default: 1/3]}
 

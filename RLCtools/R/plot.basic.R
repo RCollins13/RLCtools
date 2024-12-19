@@ -770,16 +770,26 @@ km.curve <- function(surv.models, colors, group.names=NULL, km.lwd=3, ci.alpha=0
 #' @param min.complexity Minimum number of unique values in `vals` before
 #' automatically defaulting to `style == "hist"` \[default: 30\]
 #' @param bw.adj Bandwidth adjustment for density estimation. See `adjust` in [stats::density()].
+#' @param min.bin.width Minimum permissible bin width. Only used if `style == "hist"`.
+#' \[default: automatically determine optimal bin width\]
 #' @param outlier.lower.bound Threshold below which an observation is treated
 #' as an outlier \[default: Q1 - 3*IQR\]
 #' @param outlier.upper.bound Threshold below which an observation is treated
 #' as an outlier \[default: Q3 + 3*IQR\]
 #' @param outlier.tick.hex Relative height expansion of outlier ticks \[default: 0.02\]
 #' @param color Color for density area \[default: "gray80"\]
+#' @param border Color for density border \[default: "black"\]
+#' @param outlier.color Color for outlier ticks \[default: same value is `border`\]
 #' @param title (Optional) Title for plot
+#' @param title.line Line for `title` \[default: 0.1\]
+#' @param xlims Enforce custom X-axis limits \[default: plot entire range of values\]
 #' @param x.title Title for X-axis \[default: no title\]
+#' @param x.title.line Line for `x.title` \[default: 0.5\]
 #' @param x.label.units Units for X-axis labels; passed to [RLCtools::clean.axis()]
+#' @param max.x.ticks Maximum number of ticks for X-axis \[default: 5\]
+#' @param add.y.axis Should a Y-axis be plotted? \[default: TRUE\]
 #' @param y.title Title for Y-axis \[default: no title\]
+#' @param y.title.line Line for `y.title` \[default: 0.5\]
 #' @param outlier.lwd Line width for outlier ticks \[default: 1/3\]
 #' @param parmar Margin values passed to par()
 #'
@@ -792,10 +802,14 @@ km.curve <- function(surv.models, colors, group.names=NULL, km.lwd=3, ci.alpha=0
 #' @export density.w.outliers
 #' @export
 density.w.outliers <- function(vals, style="density", min.complexity=30, bw.adj=1,
-                               outlier.lower.bound=NULL, outlier.upper.bound=NULL,
-                               outlier.tick.hex=0.02, color="gray80", title=NULL,
-                               x.title=NULL, x.label.units=NULL, y.title=NULL,
-                               outlier.lwd=1/3, parmar=c(2, 2, 0.35, 0.35)){
+                               min.bin.width=NULL, outlier.lower.bound=NULL,
+                               outlier.upper.bound=NULL, outlier.tick.hex=0.02,
+                               color="gray70", border="black", outlier.color=NULL,
+                               title=NULL, title.line=0.1, xlims=NULL,
+                               x.title=NULL, x.title.line=0.5, x.label.units=NULL,
+                               max.x.ticks=6, add.y.axis=TRUE, y.title=NULL,
+                               y.title.line=0.5, outlier.lwd=1/3,
+                               parmar=c(2, 2, 0.35, 0.35)){
   # Determine outlier points
   vals <- as.numeric(vals)
   n.unique.vals <- length(unique(vals))
@@ -817,13 +831,20 @@ density.w.outliers <- function(vals, style="density", min.complexity=30, bw.adj=
       xmax <- min(c(1, max(vals, na.rm=T)))
     }
   }
-  xlims <- c(xmin, xmax)
+  if(is.null(xlims)){
+    xlims <- c(xmin, xmax)
+  }
 
   # Compute density over non-outlier points
   histogram <- style %in% c("hist", "histogram") | n.unique.vals < 30
   if(histogram){
-    v.dens <- hist(vals[which(!is.out)], plot=F,
-                   breaks=seq(xmin, xmax, length.out=50 / bw.adj))
+    if(is.null(min.bin.width)){
+      breaks <- seq(xmin, xmax, length.out=50 / bw.adj)
+    }else{
+      breaks <- seq(xmin, xmax, by=min.bin.width)
+      breaks <- c(breaks, max(breaks, na.rm=T) + min.bin.width)
+    }
+    v.dens <- hist(vals[which(!is.out)], plot=F, breaks=breaks)
     ymax.label <- ymax <- max(v.dens$counts, na.rm=T)
   }else{
     v.dens <- density(vals[which(!is.out)], adjust=bw.adj)
@@ -838,15 +859,16 @@ density.w.outliers <- function(vals, style="density", min.complexity=30, bw.adj=
 
   # Prepare plot area
   prep.plot.area(xlims, c(0, ymax), parmar=parmar, xaxs="r")
-  clean.axis(1, title=x.title, label.units=x.label.units, infinite=TRUE, label.line=-0.9)
-  clean.axis(2, label.units=y.title, title=y.title, infinite=TRUE)
-  mtext(3, text=title, line=0.1)
 
   # Add ticks for outliers
+  if(is.null(outlier.color)){
+    outlier.color <- border
+  }
   if(n.out > 0){
     out.tick.y1 <- outlier.tick.hex * diff(par("usr")[3:4])
     segments(x0=vals[is.out], x1=vals[is.out], y0=rep(0, n.out),
-             y1=rep(out.tick.y1, n.out), xpd=T, lwd=outlier.lwd)
+             y1=rep(out.tick.y1, n.out), xpd=T, lwd=outlier.lwd,
+             col=outlier.color)
   }
 
   # Add density
@@ -854,12 +876,21 @@ density.w.outliers <- function(vals, style="density", min.complexity=30, bw.adj=
     n.breaks <- length(v.dens$breaks)
     rect(xleft=v.dens$breaks[-n.breaks], xright=v.dens$breaks[-1],
          ybottom=rep(0, length=n.breaks-1), ytop=v.dens$counts,
-         col=color, xpd=T)
+         col=color, border=border, xpd=T)
   }else{
     polygon(x=c(v.dens$x, rev(v.dens$x)),
             y=c(v.dens$y, rep(0, length(v.dens$x))),
-            col=color, xpd=T)
+            col=color, border=border, xpd=T)
   }
+
+  # Add axes & title
+  clean.axis(1, title=x.title, title.line=x.title.line, max.ticks=max.x.ticks,
+             label.units=x.label.units, infinite=TRUE, label.line=-0.9)
+  if(add.y.axis){
+    clean.axis(2, label.units=y.title, title=y.title,
+               title.line=y.title.line, infinite=TRUE)
+  }
+  mtext(3, text=title, line=title.line)
 }
 
 
