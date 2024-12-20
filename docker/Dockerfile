@@ -13,10 +13,13 @@ RUN echo 'alias l="ls -ltrha"' >> ~/.bashrc && \
 RUN apt-get -qqy update --fix-missing && \
     apt-get -qqy install --no-upgrade --no-install-recommends git
 
+# Install R with conda
+RUN mamba install -n base --update-all -c conda-forge r-base
+
 # Install R dependencies with conda
 RUN mamba install -n base --update-all \
     -c conda-forge -c r -c bioconda \
-    r-base r-bedr r-beeswarm r-desctools r-eql r-survival r-vioplot r-viridis
+    r-bedr r-beeswarm r-desctools r-eql r-survival r-vioplot r-viridis r-argparse
 
 # Clone RLCtools repo and checkout specified hash
 ARG REPO_HASH=main
