@@ -20,3 +20,5 @@ library(RLCtools)
 ```
 
 Most functions have help text, which can be accessed using `?` like any other R function.  
+
+There is a companion Docker image with minimal libraries beyond those required for `RLCtools`. See the `docker` subdirectory for more information.  
