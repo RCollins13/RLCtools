@@ -17,6 +17,7 @@ clean.axis(
   cex.axis = 5/6,
   line = 0,
   label.line = -0.65,
+  cex.title = 1,
   title.line = 0.5,
   infinite = FALSE,
   infinite.positive = FALSE,
@@ -48,6 +49,8 @@ for millions. Can be overridden by supplying \code{labels} directly.}
 \item{cex.axis}{Value passed to \code{axis()}. See \code{?axis} for details. [default: 5/6]}
 
 \item{label.line}{\code{line} parameter for axis labels [default: -0.65]}
+
+\item{cex.title}{\code{cex} parameter for axis title [default: 1]}
 
 \item{title.line}{\code{line} parameter for axis title [default: 0.5]}
 

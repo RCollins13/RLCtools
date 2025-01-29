@@ -288,31 +288,69 @@ ridgeplot <- function(data, bw.adj=NULL, names=NULL, hill.overlap=0.35,
 #' @param title.line Line for `title` \[default: 0\]
 #' @param xmax Maximum X-value to plot \[default: include all points\]
 #' @param ymax Maximum Y-value to plot \[default: smallest P-value\]
-#' @param label.cex Scaling factor for label text \[default: 1\]
-#' @param pt.color Color for all points \[default: "grey35"\]
+#' @param cap.pvals Should P-values more significant than `ymax` be capped at `ymax`? \[default: FALSE\]
+#' @param x.title Text or expression for x axis title \[default: `Expected -log10 P`\]
+#' @param y.title Text or expression for x axis title \[default: `Observed -log10 P`\]
+#' @param x.label.line Value of `label.line` passed to [`RLCtools::clean.axis()`] \[default: -0.75]
+#' @param x.title.line Value of `title.line` passed to [`RLCtools::clean.axis()`] \[default: 0.35]
+#' @param y.label.line Value of `label.line` passed to [`RLCtools::clean.axis()`] \[default: -0.65]
+#' @param y.title.line Value of `title.line` passed to [`RLCtools::clean.axis()`] \[default: 0.15]
+#' @param label.cex Scaling factor for label text \[default: 5/6\]
+#' @param ax.title.cex Scaling factor for axis title text \[default: 1\]
+#' @param title.cex Scaling factor for label text \[default: 1\]
+#' @param axis.tck Value of `tck` passed to [`RLCtools::clean.axis()`] \[default: -0.025].
+#' @param pt.color Color for all points; see `Details` \[default: "grey35"\]
 #' @param pt.cex Scaling factor for all points \[default: 0.35\]
 #' @param fdr.color Color for FDR-significant points \[default: "grey5"\]
 #' @param fdr.cex Scaling factor for FDR-significant points \[default: 0.7\]
+#' @param plot.ci Should a shaded confidence interval be added to the plot? \[default: TRUE\]
+#' @param ci.color Color for shaded confidence interval \[default: "gray90"\]
+#' @param oe.line.color Color for observed ~ expected line \[default: "gray50"\]
+#' @param plot Should a QQ plot be generated? \[default: TRUE\]
+#' @param add Should points be added to an existing graphics device? \[default: generate new plot\]
 #' @param parmar Value of `mar` passed to `par()`
+#' @param return.xy Should \(x,y\) coordinates of QQ points be returned? \[default: FALSE\]
 #'
-#' @return None
+#' @details
+#' `cutoff` should be specified in untransformed P-value units; i.e., not -log10
+#'
+#' `ymax` should be specified in transformed P-value units; i.e., -log10\(min desired P\)
+#'
+#' `pt.color` can be specified as a single color or a vector of colors for pointwise color
+#' assignment. If the length of `pt.color` does not match the length of `pvals`,
+#' the values in the `pt.color` vector will be recycled according to R conventions
+#'
+#' @returns Dependent on the value of `return.xy`:
+#' - When `TRUE`, returns a data.frame
+#' - When `FALSE` \(default\), returns NULL
 #'
 #' @export plot.qq
 #' @export
 plot.qq <- function(pvals, cutoff=NULL, do.fdr=TRUE, fdr.cutoff=0.01, print.stats=FALSE,
-                    title=NULL, title.line=0, xmax=NULL, ymax=NULL, label.cex=1,
+                    title=NULL, title.line=0, xmax=NULL, ymax=NULL, cap.pvals=FALSE,
+                    x.title=NULL, y.title=NULL, x.label.line=-0.75,
+                    y.label.line=-0.65, x.title.line=0.35, y.title.line=0.15,
+                    label.cex=5/6, ax.title.cex=1, axis.tck=-0.025,
                     pt.color="grey35", pt.cex=0.35, fdr.color="grey5", fdr.cex=0.7,
-                    parmar=c(2.25, 2.5, 0.25, 0.25)){
-  # Format P-values
+                    plot.ci=TRUE, ci.color="gray90", oe.line.color="gray50",
+                    plot=TRUE, add=FALSE, parmar=c(2.25, 2.5, 0.25, 0.25),
+                    return.xy=FALSE){
+  # Format P-values and pointwise colors
   if (!is.numeric(pvals)){
     stop("P values must be numeric.")
   }
+  if(length(pt.color) <= length(pvals)){
+    colors <- rep(pt.color, ceiling(length(pvals) / length(pt.color)))
+  }
+  colors <- colors[1:length(pvals)]
   keep.idxs <- which(!is.na(pvals) & !is.nan(pvals) & !is.null(pvals) &
                        is.finite(pvals) & pvals <= 1 & pvals >= 0)
   pvals <- pvals[keep.idxs]
-  colors <- rep(pt.color, length(pvals))
+  colors <- colors[keep.idxs]
   pw.cex <- rep(pt.cex, length(pvals))
-  pvals <- pvals[order(pvals)]
+  p.order <- order(pvals)
+  pvals <- pvals[p.order]
+  colors <- colors[p.order]
   if(do.fdr){
     fdr.idx <- which(p.adjust(pvals, "fdr") < fdr.cutoff)
     if(length(fdr.idx) > 0){
@@ -353,30 +391,69 @@ plot.qq <- function(pvals, cutoff=NULL, do.fdr=TRUE, fdr.cutoff=0.01, print.stat
   pvals <- -log10(pvals)
   log.cutoff <- -log10(cutoff)
 
-  # Prep plot area and add null confidence interval
-  prep.plot.area(c(0, 1.1 * xmax), c(0, 1.1 * ymax), parmar=parmar)
-  polygon(x=conf.int[, 1], y=conf.int[, 2], col="gray90", border=NA)
-  abline(0, 1, col="gray50")
-  if(!is.null(cutoff)){
-    abline(h=log.cutoff, lty=2)
+  # Floor large P-values, if optioned
+  any.pvals.rounded <- FALSE
+  if(cap.pvals){
+    big.pvals <- which(pvals > ymax)
+    if(length(big.pvals) > 0){
+      pvals[big.pvals] <- ymax
+      any.pvals.rounded <- TRUE
+    }
   }
 
-  # Annotate genomic control if optioned
-  if (print.stats == T){
-    text(par("usr")[1] - (0.025 * (par("usr")[2] - par("usr")[1])),
-         0.9 * par("usr")[4], pos=4, font=2, cex=0.8,
-         labels=bquote(lambda ~ .(paste("=", sprintf("%.2f", lambda), sep=""))))
+  # Generate plot if optioned
+  if(plot){
+    # Prep plot area and add null confidence interval
+    if(!add){
+      prep.plot.area(c(0, 1.1 * xmax), c(0, 1.1 * ymax), parmar=parmar)
+      if(plot.ci){
+        polygon(x=conf.int[, 1], y=conf.int[, 2], col=ci.color, border=NA)
+        abline(0, 1, col=oe.line.color)
+        if(!is.null(cutoff)){
+          abline(h=log.cutoff, lty=2)
+        }
+      }
+    }
+
+    # Annotate genomic control if optioned
+    if (print.stats == T){
+      text(par("usr")[1] - (0.025 * (par("usr")[2] - par("usr")[1])),
+           0.9 * par("usr")[4], pos=4, font=2, cex=0.8,
+           labels=bquote(lambda ~ .(paste("=", sprintf("%.2f", lambda), sep=""))))
+    }
+
+    # Add points
+    points(x=expected, y=pvals, pch=19, col=colors, cex=pw.cex)
+
+    # Add axes & title
+    if(!add){
+      if(is.null(x.title)){
+        x.title <- expression(Expected ~ ~-log[10] ~ italic(P))
+      }
+      clean.axis(1, title=x.title,
+                 title.line=x.title.line, cex.title=ax.title.cex,
+                 label.line=x.label.line, cex.axis=label.cex,
+                 infinite.positive=TRUE, tck=axis.tck)
+      y.labs <- y.at <- axTicks(2)
+      if(any.pvals.rounded){
+        y.at <- unique(c(y.at[-length(y.at)], ymax))
+        y.labs <- c(y.at[-length(y.at)], paste("\"\" > ", y.at[length(y.at)], sep=""))
+      }
+      if(is.null(y.title)){
+        y.title <- expression(Observed ~ ~-log[10] ~ italic(P))
+      }
+      clean.axis(2, at=y.at, labels=y.labs, parse.labels=TRUE, title=y.title,
+                 title.line=y.title.line, cex.title=ax.title.cex,
+                 label.line=y.label.line, cex.axis=label.cex,
+                 infinite.positive=TRUE, tck=axis.tck)
+      mtext(3, line=title.line, text=title)
+    }
   }
 
-  # Add points
-  points(x=expected, y=pvals, pch=19, col=colors, cex=pw.cex)
-
-  # Add axes & title
-  clean.axis(1, title=expression(Expected ~ ~-log[10] ~ italic(P)),
-             label.line=-0.75, title.line=0.35, infinite=TRUE)
-  clean.axis(2, title=expression(Observed ~ ~-log[10] ~ italic(P)),
-             title.line=0.15, infinite=TRUE)
-  mtext(3, line=title.line, text=title)
+  # Return point coordinates, if optioned
+  if(return.xy){
+    return(data.frame("x"=expected, "y"=pvals))
+  }
 }
 
 
@@ -539,6 +616,8 @@ scaled.bars <- function(values, colors, group.names=NULL, sep.wex=0.05,
 #' @param values List of numeric vectors of values to plot
 #' @param colors Vector of colors for the list elements in `values`
 #' @param group.names (Optional) group names to assign to each list element in `values`
+#' @param group.widths (Optional) vector of custom relative width assignments
+#' for all groups \[default: scale widths proportional to group size\]
 #' @param sep.wex Relative width scalar for whitespace on the X-axis
 #' between groups \[default: 0.05\]
 #' @param pch Value of `pch` passed to `beeswarm`
@@ -551,6 +630,7 @@ scaled.bars <- function(values, colors, group.names=NULL, sep.wex=0.05,
 #' @param y.title.line Value of `line` for `y.title`
 #' @param y.axis.at Custom Y-axis tick positions, if desired
 #' @param y.axis.labels Custom Y-axis tick labels, if desired
+#' @param y.axis.tck Value of `tck` passed to [RLCtools::clean.axis()] \[default: -0.025\]
 #' @param parmar Margin values passed to par()
 #'
 #' @details If `values` is supplied as a named list, those names will be used as
@@ -561,10 +641,11 @@ scaled.bars <- function(values, colors, group.names=NULL, sep.wex=0.05,
 #'
 #' @export scaled.swarm
 #' @export
-scaled.swarm <- function(values, colors, group.names=NULL, sep.wex=0.05,
-                         pch=19, pt.cex=0.2, title=NULL, title.line=0,
-                         title.cex=1, add.y.axis=TRUE, y.title=NULL,
-                         y.title.line=0.5, y.axis.at=NULL, y.axis.labels=NULL,
+scaled.swarm <- function(values, colors, group.names=NULL, group.widths=NULL,
+                         sep.wex=0.05, pch=19, pt.cex=0.2, title=NULL,
+                         title.line=0, title.cex=1, add.y.axis=TRUE,
+                         y.title=NULL, y.title.line=0.5, y.axis.at=NULL,
+                         y.axis.labels=NULL, y.axis.tck=-0.025,
                          parmar=c(1, 2.5, 0.25, 0.25)){
   # Ensure beeswarm & vioplot are loaded
   require(beeswarm, quietly=T)
@@ -586,7 +667,15 @@ scaled.swarm <- function(values, colors, group.names=NULL, sep.wex=0.05,
   group.size <- sapply(values, length)
 
   # Get plot dimensions
-  group.widths <- group.size / sum(group.size)
+  if(!is.null(group.widths)){
+    if(length(group.widths) != length(values)){
+      stop("Length of custom `group.widths` does not match number of groups in `values`")
+    }
+    # Re-normalize custom widths
+    group.widths <- group.widths / sum(group.widths)
+  }else{
+    group.widths <- group.size / sum(group.size)
+  }
   group.lefts <- c(0, cumsum(group.widths)[-n.groups]) + (sep.wex * (0:(n.groups-1)))
   group.rights <- group.widths + group.lefts
   group.mids <- (group.lefts + group.rights) / 2
@@ -604,7 +693,7 @@ scaled.swarm <- function(values, colors, group.names=NULL, sep.wex=0.05,
   if(add.y.axis){
     clean.axis(2, at=y.axis.at, labels=y.axis.labels,
                cex.axis=5/6, infinite=TRUE, label.line=-0.7,
-               title.line=y.title.line, title=y.title)
+               title.line=y.title.line, title=y.title, tck=y.axis.tck)
   }
 
   # Add title

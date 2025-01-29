@@ -54,6 +54,7 @@ prep.plot.area <- function(xlims, ylims, parmar, xaxs="i", yaxs="i"){
 #' @param cex.axis Value passed to `axis()`. See `?axis` for details. \[default: 5/6\]
 #' @param axis.line `line` parameter for overall axis \[default: 0\]
 #' @param label.line `line` parameter for axis labels \[default: -0.65\]
+#' @param cex.title `cex` parameter for axis title \[default: 1\]
 #' @param title.line `line` parameter for axis title \[default: 0.5\]
 #' @param infinite Indicator for the axis to be extended infinitely (without ticks) \[default: FALSE\]
 #' @param infinite.positive Indicator for the axis to be extended infinitely
@@ -67,7 +68,7 @@ prep.plot.area <- function(xlims, ylims, parmar, xaxs="i", yaxs="i"){
 #' @export
 clean.axis <- function(side, at=NULL, labels=NULL, labels.at=NULL, label.units=NULL,
                        parse.labels=FALSE, max.ticks=6, title=NULL, tck=-0.025,
-                       cex.axis=5/6, line=0, label.line=-0.65, title.line=0.5,
+                       cex.axis=5/6, line=0, label.line=-0.65, cex.title=1, title.line=0.5,
                        infinite=FALSE, infinite.positive=FALSE, infinite.negative=FALSE){
   if(infinite){axis(side, at=c(-10e10, 10e10), tck=0, labels=NA, line=line)}
   if(is.null(at)){
@@ -127,7 +128,8 @@ clean.axis <- function(side, at=NULL, labels=NULL, labels.at=NULL, label.units=N
          las=las, line=line+label.line)
   })
   if(!is.null(title)){
-    axis(side, at=title.at, tick=F, labels=title, line=line+title.line, xpd=T)
+    axis(side, at=title.at, tick=F, labels=title, line=line+title.line,
+         cex.axis=cex.title, xpd=T)
   }
 }
 

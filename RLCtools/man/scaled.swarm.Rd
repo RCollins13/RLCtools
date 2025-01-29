@@ -8,6 +8,7 @@ scaled.swarm(
   values,
   colors,
   group.names = NULL,
+  group.widths = NULL,
   sep.wex = 0.05,
   pch = 19,
   pt.cex = 0.2,
@@ -19,6 +20,7 @@ scaled.swarm(
   y.title.line = 0.5,
   y.axis.at = NULL,
   y.axis.labels = NULL,
+  y.axis.tck = -0.025,
   parmar = c(1, 2.5, 0.25, 0.25)
 )
 }
@@ -28,6 +30,9 @@ scaled.swarm(
 \item{colors}{Vector of colors for the list elements in \code{values}}
 
 \item{group.names}{(Optional) group names to assign to each list element in \code{values}}
+
+\item{group.widths}{(Optional) vector of custom relative width assignments
+for all groups [default: scale widths proportional to group size]}
 
 \item{sep.wex}{Relative width scalar for whitespace on the X-axis
 between groups [default: 0.05]}
@@ -51,6 +56,8 @@ between groups [default: 0.05]}
 \item{y.axis.at}{Custom Y-axis tick positions, if desired}
 
 \item{y.axis.labels}{Custom Y-axis tick labels, if desired}
+
+\item{y.axis.tck}{Value of \code{tck} passed to \code{\link[=clean.axis]{clean.axis()}} [default: -0.025]}
 
 \item{parmar}{Margin values passed to par()}
 }

@@ -14,12 +14,27 @@
   title.line = 0,
   xmax = NULL,
   ymax = NULL,
-  label.cex = 1,
+  cap.pvals = FALSE,
+  x.title = NULL,
+  y.title = NULL,
+  x.label.line = -0.75,
+  y.label.line = -0.65,
+  x.title.line = 0.35,
+  y.title.line = 0.15,
+  label.cex = 5/6,
+  ax.title.cex = 1,
+  axis.tck = -0.025,
   pt.color = "grey35",
   pt.cex = 0.35,
   fdr.color = "grey5",
   fdr.cex = 0.7,
-  parmar = c(2.25, 2.5, 0.25, 0.25)
+  plot.ci = TRUE,
+  ci.color = "gray90",
+  oe.line.color = "gray50",
+  plot = TRUE,
+  add = FALSE,
+  parmar = c(2.25, 2.5, 0.25, 0.25),
+  return.xy = FALSE
 )
 }
 \arguments{
@@ -41,9 +56,27 @@
 
 \item{ymax}{Maximum Y-value to plot [default: smallest P-value]}
 
-\item{label.cex}{Scaling factor for label text [default: 1]}
+\item{cap.pvals}{Should P-values more significant than \code{ymax} be capped at \code{ymax}? [default: FALSE]}
 
-\item{pt.color}{Color for all points [default: "grey35"]}
+\item{x.title}{Text or expression for x axis title [default: \verb{Expected -log10 P}]}
+
+\item{y.title}{Text or expression for x axis title [default: \verb{Observed -log10 P}]}
+
+\item{x.label.line}{Value of \code{label.line} passed to \code{\link[=clean.axis]{clean.axis()}} [default: -0.75]}
+
+\item{y.label.line}{Value of \code{label.line} passed to \code{\link[=clean.axis]{clean.axis()}} [default: -0.65]}
+
+\item{x.title.line}{Value of \code{title.line} passed to \code{\link[=clean.axis]{clean.axis()}} [default: 0.35]}
+
+\item{y.title.line}{Value of \code{title.line} passed to \code{\link[=clean.axis]{clean.axis()}} [default: 0.15]}
+
+\item{label.cex}{Scaling factor for label text [default: 5/6]}
+
+\item{ax.title.cex}{Scaling factor for axis title text [default: 1]}
+
+\item{axis.tck}{Value of \code{tck} passed to \code{\link[=clean.axis]{clean.axis()}} [default: -0.025].}
+
+\item{pt.color}{Color for all points; see \code{Details} [default: "grey35"]}
 
 \item{pt.cex}{Scaling factor for all points [default: 0.35]}
 
@@ -51,11 +84,38 @@
 
 \item{fdr.cex}{Scaling factor for FDR-significant points [default: 0.7]}
 
+\item{plot.ci}{Should a shaded confidence interval be added to the plot? [default: TRUE]}
+
+\item{ci.color}{Color for shaded confidence interval [default: "gray90"]}
+
+\item{oe.line.color}{Color for observed ~ expected line [default: "gray50"]}
+
+\item{plot}{Should a QQ plot be generated? [default: TRUE]}
+
+\item{add}{Should points be added to an existing graphics device? [default: generate new plot]}
+
 \item{parmar}{Value of \code{mar} passed to \code{par()}}
+
+\item{return.xy}{Should \(x,y\) coordinates of QQ points be returned? [default: FALSE]}
+
+\item{title.cex}{Scaling factor for label text [default: 1]}
 }
 \value{
-None
+Dependent on the value of \code{return.xy}:
+\itemize{
+\item When \code{TRUE}, returns a data.frame
+\item When \code{FALSE} \(default\), returns NULL
+}
 }
 \description{
 Generate a Q-Q plot of association stats vs. uniform null
+}
+\details{
+\code{cutoff} should be specified in untransformed P-value units; i.e., not -log10
+
+\code{ymax} should be specified in transformed P-value units; i.e., -log10\(min desired P\)
+
+\code{pt.color} can be specified as a single color or a vector of colors for pointwise color
+assignment. If the length of \code{pt.color} does not match the length of \code{pvals},
+the values in the \code{pt.color} vector will be recycled according to R conventions
 }
