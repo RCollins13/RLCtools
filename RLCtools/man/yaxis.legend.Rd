@@ -9,12 +9,16 @@ yaxis.legend(
   x,
   y.positions,
   sep.wex,
+  parse.labels = FALSE,
   min.label.spacing = 0.1,
   label.cex = 1,
   lower.limit = NULL,
   upper.limit = NULL,
   colors = NULL,
-  lwd = 3
+  lwd = 3,
+  label.colors = NULL,
+  label.font = 1,
+  return.label.pos = FALSE
 )
 }
 \arguments{
@@ -24,7 +28,10 @@ yaxis.legend(
 
 \item{y.positions}{Where should the legend labels be placed (in Y-axis units)}
 
-\item{sep.wex}{Width expansion term for text relative to \code{x}}
+\item{sep.wex}{How far should the labels be placed to the right of the plot
+margin? (in X-axis units).}
+
+\item{parse.labels}{Should \code{legend.names} be parsed as expressions? [default: FALSE]}
 
 \item{min.label.spacing}{Minimum distance between any two labels (in Y-axis units) [default: 0.1]}
 
@@ -37,6 +44,16 @@ yaxis.legend(
 \item{colors}{Line colors connecting labels to plot body [default: all black]}
 
 \item{lwd}{Width of line connecting labels to plot body [default: 3]}
+
+\item{label.colors}{Colors for text labels [default: all black]}
+
+\item{label.font}{Parameter of \code{font} passed to \code{\link[=text]{text()}} [default: 1]}
+
+\item{return.label.pos}{Should label Y positions be returned? [default: FALSE]}
+}
+\value{
+NULL, unless \code{return.label.pos} is \code{TRUE}, in which case the return
+will be a numeric vector of Y-position values for the legend labels
 }
 \description{
 Add a legend to the right Y-axis with lines connecting legend labels to

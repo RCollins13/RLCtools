@@ -26,6 +26,7 @@ ridgeplot(
   fancy.hills = TRUE,
   fancy.light.fill = NULL,
   fancy.median.color = NULL,
+  fancy.median.lend = "square",
   parmar = c(2.5, 3, 0.25, 0.25)
 )
 }
@@ -79,6 +80,9 @@ distributions beyond the IQR. Only used if \code{fancy.hills} is \code{TRUE}
 
 \item{fancy.median.color}{Vector of colors to be used for median indicator if
 \code{fancy.hills} is \code{TRUE} [default: "white"]}
+
+\item{fancy.median.lend}{Value of \code{lend} to use for fancy median line
+[default: "square"]}
 
 \item{parmar}{Vector of values passed to par(mar)}
 }

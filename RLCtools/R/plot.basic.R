@@ -32,6 +32,8 @@
 #' @param legend.vals Named vector mapping category names to colors \[default: NULL\]
 #' @param legend.labels Optional vector to overwrite names of `legend.vals`
 #' @param cex Character expansion factor for individual points \[default: 0.3\]
+#' @param add Should this scatterplot be added on top of an existing graphics
+#' device? \[default: FALSE\]
 #' @param parmar Numeric vector of values to pass to `par(mar)`
 #'
 #' @details If `legend.vals` is not provided (or is `NULL`), no legend will be added.
@@ -42,7 +44,7 @@ scatterplot <- function(X, Y, colors=NULL, title=NULL,
                         x.label.line=NULL, x.title=NULL, x.title.line=0.5, xlims=NULL,
                         y.label.line=NULL, y.title=NULL, y.title.line=0.5, ylims=NULL,
                         legend.vals=NULL, legend.labels=NULL,
-                        cex=0.3, parmar=c(2.5, 2.5, 1, 1)){
+                        cex=0.3, add=FALSE, parmar=c(2.5, 2.5, 1, 1)){
   x <- as.numeric(X)
   y <- as.numeric(Y)
   if(is.null(xlims)){
@@ -56,7 +58,9 @@ scatterplot <- function(X, Y, colors=NULL, title=NULL,
   }
 
   # Prepare plot area
-  prep.plot.area(xlims, ylims, parmar=parmar, xaxs="r", yaxs="r")
+  if(!add){
+    prep.plot.area(xlims, ylims, parmar=parmar, xaxs="r", yaxs="r")
+  }
   mtext(3, text=title)
 
   # Add X-axis
@@ -129,6 +133,8 @@ scatterplot <- function(X, Y, colors=NULL, title=NULL,
 #' \[default: "grey85"\]
 #' @param fancy.median.color Vector of colors to be used for median indicator if
 #' `fancy.hills` is `TRUE` \[default: "white"\]
+#' @param fancy.median.lend Value of `lend` to use for fancy median line
+#' \[default: "square"\]
 #' @param parmar Vector of values passed to par(mar)
 #'
 #' @details `data` can be provided either as a list of numeric vectors (one per
@@ -151,7 +157,7 @@ ridgeplot <- function(data, bw.adj=NULL, names=NULL, hill.overlap=0.35,
                       xlims=NULL, y.axis=TRUE, ylims=NULL, yaxs="r", fill=NULL,
                       border=NULL, border.lwd=2, hill.bottom=0, fancy.hills=TRUE,
                       fancy.light.fill=NULL, fancy.median.color=NULL,
-                      parmar=c(2.5, 3, 0.25, 0.25)){
+                      fancy.median.lend="square", parmar=c(2.5, 3, 0.25, 0.25)){
   # Get names before manipulating data
   if(is.null(names)){
     names <- names(data)
@@ -264,7 +270,8 @@ ridgeplot <- function(data, bw.adj=NULL, names=NULL, hill.overlap=0.35,
         polygon(x[mid.idx], y[mid.idx], border=fill[i], col=fill[i], xpd=T)
         segments(x0=meds[i], x1=meds[i],
                  y0=i-1+hill.bottom, y1=y[which.min(abs(meds[i] - x))],
-                 lwd=border.lwd, col=fancy.median.color[i], xpd=T, lend="square")
+                 lwd=border.lwd, col=fancy.median.color[i], xpd=T,
+                 lend=fancy.median.lend)
       }else{
         polygon(x, y, border=fill[i], col=fill[i], lwd=border.lwd, xpd=T)
       }

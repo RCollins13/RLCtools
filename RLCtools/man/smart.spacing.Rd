@@ -4,7 +4,14 @@
 \alias{smart.spacing}
 \title{Smart Element Spacing}
 \usage{
-smart.spacing(ideal.values, min.dist, lower.limit = -Inf, upper.limit = Inf)
+smart.spacing(
+  ideal.values,
+  min.dist,
+  lower.limit = -Inf,
+  upper.limit = Inf,
+  e = 1e-05,
+  max.iter = 1000
+)
 }
 \arguments{
 \item{ideal.values}{Numeric values to be spaced}
@@ -16,6 +23,10 @@ smart.spacing(ideal.values, min.dist, lower.limit = -Inf, upper.limit = Inf)
 
 \item{upper.limit}{Values are not allowed to be placed above this limit
 [default: no limits]}
+
+\item{e}{Nuisance parameter used to break ties [default: 10e-6]}
+
+\item{max.iter}{Maximum number of iterations for optimization [default: 1,000]}
 }
 \value{
 Numeric vector

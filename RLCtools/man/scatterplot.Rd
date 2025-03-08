@@ -20,6 +20,7 @@ scatterplot(
   legend.vals = NULL,
   legend.labels = NULL,
   cex = 0.3,
+  add = FALSE,
   parmar = c(2.5, 2.5, 1, 1)
 )
 }
@@ -53,6 +54,9 @@ scatterplot(
 \item{legend.labels}{Optional vector to overwrite names of \code{legend.vals}}
 
 \item{cex}{Character expansion factor for individual points [default: 0.3]}
+
+\item{add}{Should this scatterplot be added on top of an existing graphics
+device? [default: FALSE]}
 
 \item{parmar}{Numeric vector of values to pass to \code{par(mar)}}
 }

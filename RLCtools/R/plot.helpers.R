@@ -86,21 +86,9 @@ clean.axis <- function(side, at=NULL, labels=NULL, labels.at=NULL, label.units=N
         labels <- paste(100 * labels, "%", sep="")
       }
       if(label.units == "count"){
-        lab.logs <- floor(log10(labels))
-        raw.best <- length(which(lab.logs < 3))
-        k.best <- length(which(lab.logs >= 3 & lab.logs < 6))
-        M.best <- length(which(lab.logs > 5))
-        if(M.best > 0){
-          at <- sort(1000000 * unique(round(as.numeric(labels) / 1000000, 1)))
-          labels <- prettyNum(at / 1000000, big.mark=",")
-          labels <- paste(labels, "M", sep="")
-        }else if(k.best >= raw.best){
-          at <- sort(1000 * unique(round(as.numeric(labels) / 1000, 1)))
-          labels <- prettyNum(at / 1000, big.mark=",")
-          labels <- paste(labels, "k", sep="")
-        }else{
-          labels <- prettyNum(labels, big.mark=",")
-        }
+        label.info <- clean.numeric.labels(labels, return.rounded.vals=TRUE)
+        at <- as.numeric(label.info$values)
+        labels <- label.info$labels
       }
     }
   }
@@ -236,15 +224,18 @@ color.points.by.density <- function(x, y, palette=NULL, bandwidth=1){
 #' \[default: no limits\]
 #' @param upper.limit Values are not allowed to be placed above this limit
 #' \[default: no limits\]
+#' @param e Nuisance parameter used to break ties \[default: 10e-6\]
+#' @param max.iter Maximum number of iterations for optimization \[default: 1,000\]
 #'
 #' @return Numeric vector
 #'
 #' @export smart.spacing
 #' @export
-smart.spacing <- function(ideal.values, min.dist, lower.limit=-Inf, upper.limit=Inf){
+smart.spacing <- function(ideal.values, min.dist, lower.limit=-Inf,
+                          upper.limit=Inf, e=10e-6, max.iter=1000){
   # Curate input values
-  val.order <- order(ideal.values)
   n.vals <- length(ideal.values)
+  val.order <- order(ideal.values)
   if(n.vals * min.dist > abs(upper.limit - lower.limit)){
     warning(paste("Number of points incompatible with 'min.dist' and",
                   "specified limits. Reverting to equidistant spacing."))
@@ -262,12 +253,17 @@ smart.spacing <- function(ideal.values, min.dist, lower.limit=-Inf, upper.limit=
   ideal.sorted[which(ideal.sorted < lower.limit)] <- lower.limit
   ideal.sorted[which(ideal.sorted > upper.limit)] <- upper.limit
 
+  # Add a random nuisance value to each position to break multi-tie cases
+  ideal.sorted <- ideal.sorted + rnorm(n.vals, mean=e, sd=e)
+
   # Iteratively update spacing until best balance is reached
   calc.spacing <- function(ideal.sorted, sig.digits=10){
     round(ideal.sorted[-1] - ideal.sorted[-length(ideal.sorted)], sig.digits)
   }
   spacing <- calc.spacing(ideal.sorted)
+  k.same <- k <- 0
   while(any(spacing < min.dist)){
+    k <- k+1
     # Save old spacing info to check for convergence
     old.spacing <- spacing
 
@@ -294,15 +290,25 @@ smart.spacing <- function(ideal.values, min.dist, lower.limit=-Inf, upper.limit=
     # Update spacing from ideal.sorted
     spacing <- calc.spacing(ideal.sorted)
 
-    # Break if spacing has converged to optimal locations
-    if(setequal(spacing, old.spacing)){
+    # Check if maximum number of iterations has been reached
+    if(k >= max.iter){
       break
+    }
+
+    # Break if spacing has converged to optimal locations and no changes have
+    # been observed for at least 10 iterations
+    if(setequal(spacing, old.spacing)){
+      k.same <- k.same+1
+      if(k.same >= 10){
+        break
+      }
     }else{
       old.spacing <- spacing
+      k.same <- 0
     }
   }
 
-  return(ideal.sorted[val.order])
+  return(ideal.sorted[order(val.order)])
 }
 
 
@@ -314,24 +320,33 @@ smart.spacing <- function(ideal.values, min.dist, lower.limit=-Inf, upper.limit=
 #' @param legend.names Labels to be printed in legend
 #' @param x Where the legend will connect to the rest of the plot (in X-axis units)
 #' @param y.positions Where should the legend labels be placed (in Y-axis units)
-#' @param sep.wex Width expansion term for text relative to `x`
+#' @param sep.wex How far should the labels be placed to the right of the plot
+#' margin? (in X-axis units).
+#' @param parse.labels Should `legend.names` be parsed as expressions? \[default: FALSE\]
 #' @param min.label.spacing Minimum distance between any two labels (in Y-axis units) \[default: 0.1\]
 #' @param label.cex Value of `cex` to be used for legend text
 #' @param lower.limit No label will be placed below this value on the Y-axis \[default: `par("usr")[3]`\]
 #' @param upper.limit No label will be placed above this value on the Y-axis \[default: `par("usr")[4]`\]
 #' @param colors Line colors connecting labels to plot body \[default: all black\]
 #' @param lwd Width of line connecting labels to plot body \[default: 3\]
+#' @param label.colors Colors for text labels \[default: all black\]
+#' @param label.font Parameter of `font` passed to [text()] \[default: 1\]
+#' @param return.label.pos Should label Y positions be returned? \[default: FALSE\]
 #'
-#' @return NULL
+#' @return NULL, unless `return.label.pos` is `TRUE`, in which case the return
+#' will be a numeric vector of Y-position values for the legend labels
 #'
 #' @export yaxis.legend
 #' @export
 yaxis.legend <- function(legend.names, x, y.positions, sep.wex,
-                         min.label.spacing=0.1, label.cex=1,
-                         lower.limit=NULL, upper.limit=NULL,
-                         colors=NULL, lwd=3){
+                         parse.labels=FALSE, min.label.spacing=0.1, label.cex=1,
+                         lower.limit=NULL, upper.limit=NULL, colors=NULL, lwd=3,
+                         label.colors=NULL, label.font=1, return.label.pos=FALSE){
   if(is.null(colors)){
-    colors <- "black"
+    colors <- rep("black", length(legend.names))
+  }
+  if(is.null(label.colors)){
+    label.colors <- rep("black", length(legend.names))
   }
   if(is.null(lower.limit)){
     lower.limit <- par("usr")[3]
@@ -341,9 +356,20 @@ yaxis.legend <- function(legend.names, x, y.positions, sep.wex,
   }
   leg.at <- smart.spacing(y.positions, min.dist=min.label.spacing,
                           lower.limit=lower.limit, upper.limit=upper.limit)
-  text(x=x + sep.wex, y=leg.at, labels=legend.names, xpd=T, pos=4, cex=label.cex)
+  if(parse.labels){
+   sapply(1:length(legend.names), function(i){
+     text(x=x[i] + sep.wex, y=leg.at[i], labels=parse(text=legend.names),
+          xpd=T, pos=4, cex=label.cex, col=label.colors[i], font=label.font)
+   })
+  }else{
+    text(x=x + sep.wex, y=leg.at, labels=legend.names, xpd=T, pos=4,
+         cex=label.cex, col=label.colors, font=label.font)
+  }
   segments(x0=x, x1=x + (1.5*sep.wex), y0=y.positions, y1=leg.at,
            lwd=lwd, col=colors, xpd=T, lend="round")
+  if(return.label.pos){
+    return(leg.at)
+  }
 }
 
 
@@ -507,3 +533,50 @@ title.case <- function(x, case="title"){
     }
   }))
 }
+
+
+#' Staple-style bracket
+#'
+#' Add a staple-style square bracket to a plot
+#' @param x0 First x position for bracket
+#' @param x1 Second x position for bracket
+#' @param y0 First y position for bracket
+#' @param y1 Second y position for bracket
+#' @param orient Orientation of bracket; either `"vertical"` or `"horizontal"` \[default: vertical\]
+#' @param staple.len Length of bracket end markers \[default: 0.25\]
+#' @param ... Other parameters passed to [segments()]
+#'
+#' @export staple.bracket
+#' @export
+staple.bracket <- function(x0, x1, y0, y1, orient="vertical", staple.len=0.25, ...){
+  segments(x0=x0, x1=x1, y0=y0, y1=y1, xpd=T, ...)
+  if(orient == "horizontal"){
+    segments(x0=x0, x1=x0, y0=y0, y1=y0-staple.len, xpd=T, ...)
+    segments(x0=x1, x1=x1, y0=y1, y1=y1-staple.len, xpd=T, ...)
+  }else{
+    segments(x0=x0, x1=x0+staple.len, y0=y0, y1=y0, xpd=T, ...)
+    segments(x0=x1, x1=x1+staple.len, y0=y1, y1=y1, xpd=T, ...)
+  }
+}
+
+
+#' Step function
+#'
+#' Transform an (x, y) pair into a step function
+#'
+#' @param x Original x values
+#' @param y Original y values
+#' @param offset Scalar ~ \[0, 1\] that indicates relatively how far the "step"
+#' should be extended to the right of each point. \[default: 0.5\]
+#'
+#' @export step.function
+#' @export
+step.function <- function(x, y, offset=0.5){
+  ipw <- x[-1] - x[-length(x)]
+  left.step <- c(offset * c(ipw, ipw[length(ipw)]))
+  right.step <- c((1-offset) * c(ipw[1], ipw))
+  x.step <- interleave(x - right.step, x + left.step)
+  y.step <- interleave(y, y)
+  list("x" = x.step, "y" = y.step)
+}
+

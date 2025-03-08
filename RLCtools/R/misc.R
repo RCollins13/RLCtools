@@ -134,3 +134,69 @@ remap <- function(x, map, default.value=NULL){
   return(x)
 }
 
+
+#' Clean labels for numeric values
+#'
+#' Convert large numeric values to simple, human-readable labels with log suffixes
+#'
+#' @param vals Vector of numeric values to translate to labels
+#' @param suffix.delim Character delimiter (i.e., separator) between value and
+#' suffix \[default: no delimiter, ""\]
+#' @param acceptable.decimals Number of significant digits to permit before
+#' jumping to a greater log suffix \[default: 1\]
+#' @param return.rounded.vals Should the exact rounded numeric values also
+#' be returned? \[default: FALSE\]
+#'
+#' @details Note that all labels will be converted to the same scale / suffix scheme
+#'
+#' If element-wise conversion is desired, it's recommended to apply over `vals` instead
+#'
+#' @examples
+#'
+#' vals <- 10^(0:6)
+#'
+#' # Standard invocation:
+#' clean.numeric.labels(vals)
+#'
+#' # Element-wise implementation
+#' sapply(vals, clean.numeric.labels)
+#'
+#' @export clean.numeric.labels
+#' @export
+clean.numeric.labels <- function(vals, suffix.delim="", acceptable.decimals=1,
+                                 return.rounded.vals=FALSE){
+  vals <- as.numeric(vals)
+  lab.logs <- floor(log10(vals))
+  raw.best <- length(which(lab.logs < 3-acceptable.decimals))
+  k.best <- length(which(lab.logs >= 3-acceptable.decimals & lab.logs < 6-acceptable.decimals))
+  M.best <- length(which(lab.logs >= 6-acceptable.decimals & lab.logs < 9-acceptable.decimals))
+  B.best <- length(which(lab.logs >= 9-acceptable.decimals & lab.logs < 12-acceptable.decimals))
+  T.best <- length(which(lab.logs > 11-acceptable.decimals))
+  if(sum(T.best, B.best, M.best, k.best) > 0){
+    if(T.best > 0){
+      scalar <- 10^12
+      suffix <- "T"
+    }else if(B.best > 0){
+      scalar <- 10^9
+      suffix <- "B"
+    }else if(M.best > 0){
+      scalar <- 10^6
+      suffix <- "M"
+    }else if(k.best > 0){
+      scalar <- 10^3
+      suffix <- "k"
+    }
+    at <- sort(scalar * unique(round(vals / scalar, acceptable.decimals)))
+    labels <- prettyNum(at / scalar, big.mark=",")
+    labels <- paste(labels, suffix, sep=suffix.delim)
+  }else{
+    at <- vals
+    labels <- prettyNum(at, big.mark=",")
+  }
+  if(return.rounded.vals){
+    return(list("labels" = labels, "values" = at))
+  }else{
+    return(labels)
+  }
+}
+
