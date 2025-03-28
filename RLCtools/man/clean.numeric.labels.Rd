@@ -7,7 +7,8 @@
 clean.numeric.labels(
   vals,
   suffix.delim = "",
-  acceptable.decimals = 1,
+  acceptable.decimals = 0,
+  min.label.length = 1,
   return.rounded.vals = FALSE
 )
 }
@@ -17,8 +18,12 @@ clean.numeric.labels(
 \item{suffix.delim}{Character delimiter (i.e., separator) between value and
 suffix [default: no delimiter, ""]}
 
-\item{acceptable.decimals}{Number of significant digits to permit before
-jumping to a greater log suffix [default: 1]}
+\item{acceptable.decimals}{Number of significant decimal digits to permit
+before jumping to a greater log suffix [default: 0]}
+
+\item{min.label.length}{Minimum total count of digits to include in each
+label; labels shorter than this length will have their decimal places expanded
+[default: 1]}
 
 \item{return.rounded.vals}{Should the exact rounded numeric values also
 be returned? [default: FALSE]}

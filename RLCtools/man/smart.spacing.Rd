@@ -9,7 +9,7 @@ smart.spacing(
   min.dist,
   lower.limit = -Inf,
   upper.limit = Inf,
-  e = 1e-05,
+  e = 1e-07,
   max.iter = 1000
 )
 }
@@ -24,7 +24,7 @@ smart.spacing(
 \item{upper.limit}{Values are not allowed to be placed above this limit
 [default: no limits]}
 
-\item{e}{Nuisance parameter used to break ties [default: 10e-6]}
+\item{e}{Nuisance parameter used to break ties [default: 10e-8]}
 
 \item{max.iter}{Maximum number of iterations for optimization [default: 1,000]}
 }

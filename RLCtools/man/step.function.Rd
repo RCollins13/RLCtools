@@ -4,7 +4,7 @@
 \alias{step.function}
 \title{Step function}
 \usage{
-step.function(x, y, offset = 0.5)
+step.function(x, y, offset = 0.5, interpolate = FALSE)
 }
 \arguments{
 \item{x}{Original x values}
@@ -13,6 +13,9 @@ step.function(x, y, offset = 0.5)
 
 \item{offset}{Scalar ~ [0, 1] that indicates relatively how far the "step"
 should be extended to the right of each point. [default: 0.5]}
+
+\item{interpolate}{Should missing points be interpolated by extending the
+flanking steps to cover the missing values? [default: FALSE]}
 }
 \description{
 Transform an (x, y) pair into a step function

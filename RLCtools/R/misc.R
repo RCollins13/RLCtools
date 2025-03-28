@@ -142,8 +142,11 @@ remap <- function(x, map, default.value=NULL){
 #' @param vals Vector of numeric values to translate to labels
 #' @param suffix.delim Character delimiter (i.e., separator) between value and
 #' suffix \[default: no delimiter, ""\]
-#' @param acceptable.decimals Number of significant digits to permit before
-#' jumping to a greater log suffix \[default: 1\]
+#' @param acceptable.decimals Number of significant decimal digits to permit
+#' before jumping to a greater log suffix \[default: 0\]
+#' @param min.label.length Minimum total count of digits to include in each
+#' label; labels shorter than this length will have their decimal places expanded
+#' \[default: 1\]
 #' @param return.rounded.vals Should the exact rounded numeric values also
 #' be returned? \[default: FALSE\]
 #'
@@ -163,8 +166,8 @@ remap <- function(x, map, default.value=NULL){
 #'
 #' @export clean.numeric.labels
 #' @export
-clean.numeric.labels <- function(vals, suffix.delim="", acceptable.decimals=1,
-                                 return.rounded.vals=FALSE){
+clean.numeric.labels <- function(vals, suffix.delim="", acceptable.decimals=0,
+                                 min.label.length=1, return.rounded.vals=FALSE){
   vals <- as.numeric(vals)
   lab.logs <- floor(log10(vals))
   raw.best <- length(which(lab.logs < 3-acceptable.decimals))
@@ -186,8 +189,24 @@ clean.numeric.labels <- function(vals, suffix.delim="", acceptable.decimals=1,
       scalar <- 10^3
       suffix <- "k"
     }
-    at <- sort(scalar * unique(round(vals / scalar, acceptable.decimals)))
-    labels <- prettyNum(at / scalar, big.mark=",")
+    roundeds <- sapply(vals, function(v){
+      full.r <- round(vals / scalar, 16)
+      prelim <- round(vals / scalar, acceptable.decimals)
+      prelim.big <- unlist(strsplit(as.character(prelim), split=".", fixed=T))[1]
+      n.prelim.big <- max(nchar(prelim.big), 0, na.rm=T)
+      prelim.small <- unlist(strsplit(as.character(prelim), split=".", fixed=T))[2]
+      n.prelim.small <- max(nchar(prelim.small), 0, na.rm=T)
+      n.digits <- n.prelim.big + n.prelim.small
+      if(n.digits >= min.label.length){
+        as.character(prelim)
+      }else{
+        nsmall <- min.label.length-n.prelim.big
+        full.small <- unlist(strsplit(as.character(full.r), split=".", fixed=T))[2]
+        format(paste(prelim.big, substr(full.small, 1, nsmall), sep="."), nsmall=nsmall)
+      }
+    })
+    at <- sort(scalar * as.numeric(unique(roundeds)))
+    labels <- prettyNum(roundeds, big.mark=",")
     labels <- paste(labels, suffix, sep=suffix.delim)
   }else{
     at <- vals

@@ -224,7 +224,7 @@ color.points.by.density <- function(x, y, palette=NULL, bandwidth=1){
 #' \[default: no limits\]
 #' @param upper.limit Values are not allowed to be placed above this limit
 #' \[default: no limits\]
-#' @param e Nuisance parameter used to break ties \[default: 10e-6\]
+#' @param e Nuisance parameter used to break ties \[default: 10e-8\]
 #' @param max.iter Maximum number of iterations for optimization \[default: 1,000\]
 #'
 #' @return Numeric vector
@@ -232,7 +232,7 @@ color.points.by.density <- function(x, y, palette=NULL, bandwidth=1){
 #' @export smart.spacing
 #' @export
 smart.spacing <- function(ideal.values, min.dist, lower.limit=-Inf,
-                          upper.limit=Inf, e=10e-6, max.iter=1000){
+                          upper.limit=Inf, e=10e-8, max.iter=1000){
   # Curate input values
   n.vals <- length(ideal.values)
   val.order <- order(ideal.values)
@@ -253,8 +253,8 @@ smart.spacing <- function(ideal.values, min.dist, lower.limit=-Inf,
   ideal.sorted[which(ideal.sorted < lower.limit)] <- lower.limit
   ideal.sorted[which(ideal.sorted > upper.limit)] <- upper.limit
 
-  # Add a random nuisance value to each position to break multi-tie cases
-  ideal.sorted <- ideal.sorted + rnorm(n.vals, mean=e, sd=e)
+  # Add a nuisance value to each position to break multi-tie cases
+  ideal.sorted <- ideal.sorted + (order(ideal.sorted) * e)
 
   # Iteratively update spacing until best balance is reached
   calc.spacing <- function(ideal.sorted, sig.digits=10){
@@ -357,10 +357,10 @@ yaxis.legend <- function(legend.names, x, y.positions, sep.wex,
   leg.at <- smart.spacing(y.positions, min.dist=min.label.spacing,
                           lower.limit=lower.limit, upper.limit=upper.limit)
   if(parse.labels){
-   sapply(1:length(legend.names), function(i){
-     text(x=x[i] + sep.wex, y=leg.at[i], labels=parse(text=legend.names),
-          xpd=T, pos=4, cex=label.cex, col=label.colors[i], font=label.font)
-   })
+    sapply(1:length(legend.names), function(i){
+      text(x=x[i] + sep.wex, y=leg.at[i], labels=parse(text=legend.names),
+           xpd=T, pos=4, cex=label.cex, col=label.colors[i], font=label.font)
+    })
   }else{
     text(x=x + sep.wex, y=leg.at, labels=legend.names, xpd=T, pos=4,
          cex=label.cex, col=label.colors, font=label.font)
@@ -489,21 +489,26 @@ optimize.label.color <- function(bg.color, cutoff=0.7){
 }
 
 
-#' Adjust color brightness
+#' Adjust color properties
 #'
-#' Adjust brightness of one or more colors via conversion to HSV colorspace
+#' Adjust hue, saturation, or brightness of one or more colors via conversion
+#' to HSV colorspace and back
 #'
 #' @param colors Character vector of one or more colors in hex format
-#' @param d Adjustment for brightness
+#' @param h Adjustment for hue
+#' @param s Adjustment for saturation
+#' @param b Adjustment for brightness
 #'
-#' @details Final brightness will be bounded within \[0, 1\]
+#' @details Final hue, saturation, and brightness will be bounded within \[0, 1\]
 #'
-#' @export adjust.brightness
+#' @export adjust.color.hsb
 #' @export
-adjust.brightness <- function(colors, d){
+adjust.color.hsb <- function(colors, h=0, s=0, b=0){
   require(DescTools)
   c.v <- DescTools::ColToHsv(colors)
-  c.v[3, ] <- sapply(c.v[3, ] + d, function(v){max(c(0, min(c(1, v))))})
+  c.v[1, ] <- sapply(c.v[1, ] + h, function(v){max(c(0, min(c(1, v))))})
+  c.v[2, ] <- sapply(c.v[2, ] + s, function(v){max(c(0, min(c(1, v))))})
+  c.v[3, ] <- sapply(c.v[3, ] + b, function(v){max(c(0, min(c(1, v))))})
   apply(c.v, 2, function(cc){hsv(cc[1], cc[2], cc[3])})
 }
 
@@ -568,15 +573,62 @@ staple.bracket <- function(x0, x1, y0, y1, orient="vertical", staple.len=0.25, .
 #' @param y Original y values
 #' @param offset Scalar ~ \[0, 1\] that indicates relatively how far the "step"
 #' should be extended to the right of each point. \[default: 0.5\]
+#' @param interpolate Should missing points be interpolated by extending the
+#' flanking steps to cover the missing values? \[default: FALSE\]
 #'
 #' @export step.function
 #' @export
-step.function <- function(x, y, offset=0.5){
+step.function <- function(x, y, offset=0.5, interpolate=FALSE){
+  # Clean non-numeric y values
+  y <- as.numeric(y)
+  y[which(is.infinite(y))] <- NA
+
+  # Convert to step function
   ipw <- x[-1] - x[-length(x)]
   left.step <- c(offset * c(ipw, ipw[length(ipw)]))
   right.step <- c((1-offset) * c(ipw[1], ipw))
   x.step <- interleave(x - right.step, x + left.step)
   y.step <- interleave(y, y)
+
+  # Interpolate missing values, if desired
+  if(interpolate & any(is.na(y.step))){
+    # Find runs of one or more NA values
+    y.missing <- which(is.na(y.step))
+    fill.ranges <- lapply(split(y.missing[seq_along(y.missing)],
+                                cumsum(c(0, diff(y.missing) > 1))), range)
+
+    # Interpolate each range by extending the flanking non-NA values
+    if(length(fill.ranges) > 0){
+      for(i in 1:length(fill.ranges)){
+        idx.l <- fill.ranges[[i]][1]
+        idx.r <- fill.ranges[[i]][2]
+        x.mid <- mean(x.step[idx.l:idx.r])
+        y.split <- floor(mean(c(idx.l, idx.r)))
+        is.left.edge <- idx.l == 1
+        is.right.edge <- idx.r == length(y.step)
+        if(is.left.edge & is.right.edge){
+          stop(paste("Interpolation of missing values in RLCtools::step.function()",
+                     "is impossible if all Y values are NA, infinite, or missing"))
+        }
+        fidx.l <- idx.l - 1
+        fidx.r <- idx.r + 1
+        if(is.left.edge){
+          y.step[idx.l:idx.r] <- y.step[fidx.r]
+        }else{
+          x.step[fidx.l:y.split] <- x.mid
+          y.step[idx.l:y.split] <- y.step[fidx.l]
+        }
+        if(is.right.edge){
+          y.step[idx.l:idx.r] <- y.step[fidx.l]
+        }else{
+          x.step[(y.split+1):fidx.r] <- x.mid
+          y.step[(y.split+1):idx.r] <- y.step[fidx.l]
+        }
+      }
+    }
+  }
+
+  # Return final step values
   list("x" = x.step, "y" = y.step)
 }
 
