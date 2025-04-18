@@ -47,6 +47,30 @@ mode <- function(values, break.ties="all", seed=2022){
 }
 
 
+#' Chi-square power
+#'
+#' Calculate the power of a 2x2 Chi-square test given a known sample size and prespecified effect odds ratio
+#'
+#' @param N Total observations
+#' @param P Expected proportion of observations with affirmative outcome
+#' (e.g., disease|event) under a null baseline
+#' @param OR Target odds ratio
+#' @param alpha Desired type I error rate \[default: 0.05\]
+#'
+#' @export chisq.power.from.or
+#' @export
+chisq.power.from.or <- function(N, P, OR){
+  Eo <- N * (1 - P)
+  Ea <- N * P
+  R <- OR * (Ea / Eo)
+  Oa <- (R * N) / (1 + R)
+  Oo <- N - Oa
+  NC <- ((Oo - Eo)^2 / Eo) + ((Oa - Ea)^2 / Ea)
+  Xc <- qchisq(1 - alpha, 1)
+  1 - pchisq(Xc, df=1, ncp=NC)
+}
+
+
 #' Define Outlier Values
 #'
 #' Define outlier observations from a numeric vector using the standard
@@ -79,31 +103,6 @@ label.outliers <- function(values, n.iqr=3, fixed.min=NULL, fixed.max=NULL){
 }
 
 
-#' Position-interval intersection
-#'
-#' Logical check of whether one integer is inside an interval
-#' defined by two other integers
-#'
-#' @param pos Query integer
-#' @param interval Two-element numeric vector defining the bounds of the target interval
-#'
-#' @returns Logical
-#'
-#' @examples
-#' is.inside(2, c(1, 3))
-#' # TRUE
-#'
-#' is.inside(5, c(1, 3))
-#' # FALSE
-#'
-#' @export is.inside
-#' @export
-is.inside <- function(pos, interval){
-  pos <- as.numeric(pos)
-  pos >= min(interval, na.rm=T) & pos <= max(interval, na.rm=T)
-}
-
-
 #' Inverse-variance weighted meta-analysis
 #'
 #' Conduct a simple inverse-variance weighted meta-analysis of point estimates
@@ -130,6 +129,31 @@ ivw.meta <- function(estimates, vars, conf=0.95){
            "variance" = pooled.var,
            "lower.ci" = lower.ci,
            "upper.ci" = upper.ci))
+}
+
+
+#' Position-interval intersection
+#'
+#' Logical check of whether one integer is inside an interval
+#' defined by two other integers
+#'
+#' @param pos Query integer
+#' @param interval Two-element numeric vector defining the bounds of the target interval
+#'
+#' @returns Logical
+#'
+#' @examples
+#' is.inside(2, c(1, 3))
+#' # TRUE
+#'
+#' is.inside(5, c(1, 3))
+#' # FALSE
+#'
+#' @export is.inside
+#' @export
+is.inside <- function(pos, interval){
+  pos <- as.numeric(pos)
+  pos >= min(interval, na.rm=T) & pos <= max(interval, na.rm=T)
 }
 
 

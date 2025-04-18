@@ -190,8 +190,8 @@ clean.numeric.labels <- function(vals, suffix.delim="", acceptable.decimals=0,
       suffix <- "k"
     }
     roundeds <- sapply(vals, function(v){
-      full.r <- round(vals / scalar, 16)
-      prelim <- round(vals / scalar, acceptable.decimals)
+      full.r <- round(v / scalar, 16)
+      prelim <- round(v / scalar, acceptable.decimals)
       prelim.big <- unlist(strsplit(as.character(prelim), split=".", fixed=T))[1]
       n.prelim.big <- max(nchar(prelim.big), 0, na.rm=T)
       prelim.small <- unlist(strsplit(as.character(prelim), split=".", fixed=T))[2]
