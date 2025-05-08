@@ -18,7 +18,9 @@ yaxis.legend(
   lwd = 3,
   label.colors = NULL,
   label.font = 1,
-  return.label.pos = FALSE
+  return.label.pos = FALSE,
+  direct = FALSE,
+  lend = "round"
 )
 }
 \arguments{
@@ -37,9 +39,11 @@ margin? (in X-axis units).}
 
 \item{label.cex}{Value of \code{cex} to be used for legend text}
 
-\item{lower.limit}{No label will be placed below this value on the Y-axis [default: \code{par("usr")[3]}]}
+\item{lower.limit}{No label will be placed below this value on the Y-axis
+[default: \code{par("usr")[3]}]}
 
-\item{upper.limit}{No label will be placed above this value on the Y-axis [default: \code{par("usr")[4]}]}
+\item{upper.limit}{No label will be placed above this value on the Y-axis
+[default: \code{par("usr")[4]}]}
 
 \item{colors}{Line colors connecting labels to plot body [default: all black]}
 
@@ -50,6 +54,10 @@ margin? (in X-axis units).}
 \item{label.font}{Parameter of \code{font} passed to \code{\link[=text]{text()}} [default: 1]}
 
 \item{return.label.pos}{Should label Y positions be returned? [default: FALSE]}
+
+\item{direct}{Draw lines directly from \code{x} and labels [default: snake connectors]}
+
+\item{lend}{Value of \code{lend} passed to \code{\link[=segments]{segments()}} [default: "round"]}
 }
 \value{
 NULL, unless \code{return.label.pos} is \code{TRUE}, in which case the return

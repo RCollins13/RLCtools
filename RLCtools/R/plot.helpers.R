@@ -325,13 +325,17 @@ smart.spacing <- function(ideal.values, min.dist, lower.limit=-Inf,
 #' @param parse.labels Should `legend.names` be parsed as expressions? \[default: FALSE\]
 #' @param min.label.spacing Minimum distance between any two labels (in Y-axis units) \[default: 0.1\]
 #' @param label.cex Value of `cex` to be used for legend text
-#' @param lower.limit No label will be placed below this value on the Y-axis \[default: `par("usr")[3]`\]
-#' @param upper.limit No label will be placed above this value on the Y-axis \[default: `par("usr")[4]`\]
+#' @param lower.limit No label will be placed below this value on the Y-axis
+#' \[default: `par("usr")[3]`\]
+#' @param upper.limit No label will be placed above this value on the Y-axis
+#' \[default: `par("usr")[4]`\]
 #' @param colors Line colors connecting labels to plot body \[default: all black\]
 #' @param lwd Width of line connecting labels to plot body \[default: 3\]
 #' @param label.colors Colors for text labels \[default: all black\]
 #' @param label.font Parameter of `font` passed to [text()] \[default: 1\]
 #' @param return.label.pos Should label Y positions be returned? \[default: FALSE\]
+#' @param direct Draw lines directly from `x` and labels \[default: snake connectors\]
+#' @param lend Value of `lend` passed to [segments()] \[default: "round"\]
 #'
 #' @return NULL, unless `return.label.pos` is `TRUE`, in which case the return
 #' will be a numeric vector of Y-position values for the legend labels
@@ -341,7 +345,8 @@ smart.spacing <- function(ideal.values, min.dist, lower.limit=-Inf,
 yaxis.legend <- function(legend.names, x, y.positions, sep.wex,
                          parse.labels=FALSE, min.label.spacing=0.1, label.cex=1,
                          lower.limit=NULL, upper.limit=NULL, colors=NULL, lwd=3,
-                         label.colors=NULL, label.font=1, return.label.pos=FALSE){
+                         label.colors=NULL, label.font=1, return.label.pos=FALSE,
+                         direct=FALSE, lend="round"){
   if(is.null(colors)){
     colors <- rep("black", length(legend.names))
   }
@@ -356,17 +361,30 @@ yaxis.legend <- function(legend.names, x, y.positions, sep.wex,
   }
   leg.at <- smart.spacing(y.positions, min.dist=min.label.spacing,
                           lower.limit=lower.limit, upper.limit=upper.limit)
+
   if(parse.labels){
     sapply(1:length(legend.names), function(i){
-      text(x=x[i] + sep.wex, y=leg.at[i], labels=parse(text=legend.names),
+      text(x=x + sep.wex, y=leg.at[i], labels=parse(text=legend.names),
            xpd=T, pos=4, cex=label.cex, col=label.colors[i], font=label.font)
     })
   }else{
     text(x=x + sep.wex, y=leg.at, labels=legend.names, xpd=T, pos=4,
          cex=label.cex, col=label.colors, font=label.font)
   }
-  segments(x0=x, x1=x + (1.5*sep.wex), y0=y.positions, y1=leg.at,
-           lwd=lwd, col=colors, xpd=T, lend="round")
+
+  if(direct){
+    segments(x0=x, x1=x + (1.5*sep.wex), y0=rev(y.positions), y1=rev(leg.at),
+             lwd=lwd, col=rev(colors), xpd=T, lend=lend)
+  }else{
+    x.sub <- quantile(c(x, x + (1.5*sep.wex)), probs=c(0, 0.25, 0.75, 1))
+    segments(x0=x.sub[1], x1=x.sub[2], y0=rev(y.positions), y1=rev(y.positions),
+             lwd=lwd, col=rev(colors), xpd=T, lend=lend)
+    segments(x0=x.sub[3], x1=x.sub[4], y0=rev(leg.at), y1=rev(leg.at),
+             lwd=lwd, col=rev(colors), xpd=T, lend=lend)
+    segments(x0=x.sub[2], x1=x.sub[3], y0=rev(y.positions), y1=rev(leg.at),
+             lwd=lwd, col=rev(colors), xpd=T, lend="round")
+  }
+
   if(return.label.pos){
     return(leg.at)
   }
