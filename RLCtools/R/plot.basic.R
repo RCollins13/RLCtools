@@ -108,6 +108,9 @@ scatterplot <- function(X, Y, colors=NULL, title=NULL,
 #' @param bw.adj Numeric vector of `adjust` values passed to [density()] if `data`
 #' is provided as numeric vectors rather than pre-computed [density()] objects.
 #' See `Details`.
+#' @param breaks Numeric vector of histogram bin breaks. If specified, this will
+#' override the value of `bw.adj` and cause the plot to be rendered as a histogram.
+#' See `Details`.
 #' @param names Optional list of names for Y axis \[default: take names from data\]
 #' @param hill.overlap Relative fraction of overlap bewtween adjacent hills \[default: 0.35\]
 #' @param x.axis.side `side` value for x-axis; `NA` will disable X-axis plotting. \[default: 1\]
@@ -133,6 +136,8 @@ scatterplot <- function(X, Y, colors=NULL, title=NULL,
 #' \[default: "grey85"\]
 #' @param fancy.median.color Vector of colors to be used for median indicator if
 #' `fancy.hills` is `TRUE` \[default: "white"\]
+#' @param fancy.median.lwd Value of `lwd` to use for fancy median and IQR lines
+#' \[default: 2\]
 #' @param fancy.median.lend Value of `lend` to use for fancy median line
 #' \[default: "square"\]
 #' @param parmar Vector of values passed to par(mar)
@@ -147,17 +152,22 @@ scatterplot <- function(X, Y, colors=NULL, title=NULL,
 #' to customize the bandwidth for each hill. This vector will be recycled in the
 #' usual way following R conventions.
 #'
-#' @seealso [density()]
+#' Lastly, if `breaks` are specified and if `data` is provided as a list of
+#' numeric vectors, no [density()] will be computed and all hills will be rendered
+#' as histograms instad.
+#'
+#' @seealso [density()], [hist()]
 #'
 #' @export ridgeplot
 #' @export
-ridgeplot <- function(data, bw.adj=NULL, names=NULL, hill.overlap=0.35,
+ridgeplot <- function(data, bw.adj=NULL, breaks=NULL, names=NULL, hill.overlap=0.35,
                       x.axis.side=1, x.title="Values", x.title.line=0.3,
                       x.label.line=-0.65, max.x.ticks=6, x.tick.len=-0.025,
                       xlims=NULL, y.axis=TRUE, ylims=NULL, yaxs="r", fill=NULL,
                       border=NULL, border.lwd=2, hill.bottom=0, fancy.hills=TRUE,
                       fancy.light.fill=NULL, fancy.median.color=NULL,
-                      fancy.median.lend="square", parmar=c(2.5, 3, 0.25, 0.25)){
+                      fancy.median.lwd=2, fancy.median.lend="square",
+                      parmar=c(2.5, 3, 0.25, 0.25)){
   # Get names before manipulating data
   if(is.null(names)){
     names <- names(data)
@@ -175,37 +185,60 @@ ridgeplot <- function(data, bw.adj=NULL, names=NULL, hill.overlap=0.35,
     fancy.hills <- FALSE
   }
 
-  # Coerce data to KDE if needed
+  # Coerce data to KDE or hist, if needed
   if(is.numeric(data[[1]])){
-    if(is.null(bw.adj)){
-      bw.adj <- rep(1, length(data))
-    }
-    if(length(bw.adj) < length(data)){
-      bw.adj <- rep(bw.adj, length(data) / length(bw.adj))
-    }
-    data <- lapply(1:length(data), function(i){
-      if(length(data[[i]]) > 1){
-        density(data[[i]], adjust=bw.adj[i])
-      }else{
-        NULL
+    if(!is.null(breaks)){
+      as.hist <- TRUE
+      data <- lapply(1:length(data), function(i){
+        if(length(data[[i]]) > 1){
+          data[[i]][which(data[[i]] < min(breaks))] <- min(breaks)
+          data[[i]][which(data[[i]] > max(breaks))] <- max(breaks)
+          hist(data[[i]], breaks=breaks, plot=F)$density
+        }else{
+          NULL
+        }
+      })
+      names(data) <- names
+    }else{
+      as.hist <- FALSE
+      if(is.null(bw.adj)){
+        bw.adj <- rep(1, length(data))
       }
-    })
-    names(data) <- names
+      if(length(bw.adj) < length(data)){
+        bw.adj <- rep(bw.adj, length(data) / length(bw.adj))
+      }
+      data <- lapply(1:length(data), function(i){
+        if(length(data[[i]]) > 1){
+          density(data[[i]], adjust=bw.adj[i])
+        }else{
+          NULL
+        }
+      })
+      names(data) <- names
+    }
   }
 
   # Scale Y values of data to [hill.bottom, hill.overlap]
   for(i in 1:length(data)){
     if(!is.null(data[[i]])){
-      y <- data[[i]]$y
+      y <- if(as.hist){data[[i]]}else{data[[i]]$y}
       y <- y - min(y)
-      data[[i]]$y <- ((1 + hill.overlap - hill.bottom) * (y / max(y))) + hill.bottom
+      if(as.hist){
+        data[[i]] <- ((1 + hill.overlap - hill.bottom) * (y / max(y))) + hill.bottom
+      }else{
+        data[[i]]$y <- ((1 + hill.overlap - hill.bottom) * (y / max(y))) + hill.bottom
+      }
     }
   }
 
   # Get plot dimensions
   if(is.null(xlims)){
-    xlims <- c(min(sapply(data, function(d){min(d$x, na.rm=T)})),
-               max(sapply(data, function(d){max(d$x, na.rm=T)})))
+    if(as.hist){
+      xlims <- range(breaks)
+    }else{
+      xlims <- c(min(sapply(data, function(d){min(d$x, na.rm=T)})),
+                 max(sapply(data, function(d){max(d$x, na.rm=T)})))
+    }
   }
   if(is.null(ylims)){
     ylims <- c(0, length(data) + max(c(0, hill.overlap)))
@@ -256,27 +289,76 @@ ridgeplot <- function(data, bw.adj=NULL, names=NULL, hill.overlap=0.35,
       text(x=mean(par("usr")[1:2]), y=mean(c(i-1+hill.bottom, i)),
            cex=5/6, labels="No data", font=3, col="gray80")
     }else{
-      x <- c(data[[i]]$x, rev(data[[i]]$x))
-      y <- c(data[[i]]$y, rep(hill.bottom, times=length(data[[i]]$y)))+i-1
+      if(as.hist){
+        steps <- step.function(breaks[-length(breaks)], data[[i]], offset=1)
+        x <- c(steps$x, rev(steps$x))
+        y <- c(steps$y, rep(hill.bottom, times=length(steps$y)))+i-1
+      }else{
+        x <- c(data[[i]]$x, rev(data[[i]]$x))
+        y <- c(data[[i]]$y, rep(hill.bottom, times=length(data[[i]]$y)))+i-1
+      }
       if(fancy.hills){
-        left.idx <- which(x < q1s[i])
-        mid.idx <- which(x >= q1s[i] & x <= q3s[i])
-        right.idx <- which(x > q3s[i])
+        if(as.hist){
+          left.break.idx <- which(breaks < q1s[i])
+          left.step <- step.function(as.numeric(c(breaks[left.break.idx], q1s[i])),
+                                     data[[i]][c(left.break.idx, max(left.break.idx))],
+                                     offset=1)
+          left.x <- c(left.step$x, rev(left.step$x))
+          left.y <- c(left.step$y, rep(hill.bottom, times=length(left.step$y)))+i-1
+          mid.break.idx <- which(breaks >= q1s[i] & breaks < q3s[i])
+          mid.step <- step.function(as.numeric(c(q1s[i], breaks[mid.break.idx])),
+                                    data[[i]][c(min(mid.break.idx)-1, mid.break.idx)],
+                                    offset=1)
+          mid.step$x[length(mid.step$x)] <- q3s[i]
+          mid.x <- c(mid.step$x, rev(mid.step$x))
+          mid.y <- c(mid.step$y, rep(hill.bottom, times=length(mid.step$y)))+i-1
+          right.break.idx <- which(breaks >= q3s[i])
+          right.break.idx <- right.break.idx[-length(right.break.idx)]
+          right.step <- step.function(as.numeric(c(q3s[i], breaks[right.break.idx])),
+                                      data[[i]][c(min(right.break.idx)-1, right.break.idx)],
+                                      offset=1)
+          right.x <- c(right.step$x, rev(right.step$x))
+          right.y <- c(right.step$y, rep(hill.bottom, times=length(right.step$y)))+i-1
+        }else{
+          left.idx <- which(x < q1s[i])
+          left.x <- x[left.idx]
+          left.y <- y[left.idx]
+          mid.idx <- which(x >= q1s[i] & x <= q3s[i])
+          mid.x <- x[mid.idx]
+          mid.y <- y[mid.idx]
+          right.idx <- which(x > q3s[i])
+          right.x <- x[right.idx]
+          right.y <- y[right.idx]
+        }
         polygon(x, y, border=NA, col="white", xpd=T)
-        polygon(x[left.idx], y[left.idx], border=fancy.light.fill[i],
-                col=fancy.light.fill[i], xpd=T)
-        polygon(x[right.idx], y[right.idx], border=fancy.light.fill[i],
-                col=fancy.light.fill[i], xpd=T)
-        polygon(x[mid.idx], y[mid.idx], border=fill[i], col=fill[i], xpd=T)
-        segments(x0=meds[i], x1=meds[i],
-                 y0=i-1+hill.bottom, y1=y[which.min(abs(meds[i] - x))],
-                 lwd=border.lwd, col=fancy.median.color[i], xpd=T,
+        polygon(left.x, left.y, border=fancy.light.fill[i],
+                col=fancy.light.fill[i], xpd=T, lwd=0.5)
+        polygon(right.x, right.y, border=fancy.light.fill[i],
+                col=fancy.light.fill[i], xpd=T, lwd=0.5)
+        polygon(mid.x, mid.y, border=fill[i], col=fill[i], xpd=T, lwd=0.5)
+        segments(x0=meds[i], x1=meds[i], y0=i-1+hill.bottom,
+                 y1=if(as.hist){
+                   data[[i]][max(which(meds[i] > breaks))]+i-1
+                 }else{
+                   y[which.min(abs(meds[i] - x))]
+                 },
+                 lwd=fancy.median.lwd, col=fancy.median.color[i], xpd=T,
                  lend=fancy.median.lend)
+        segments(x0=c(q1s[i], q3s[i]), x1=c(q1s[i], q3s[i]),
+                 y0=i-1+hill.bottom,
+                 y1=if(as.hist){
+                   data[[i]][c(max(which(q1s[i] > breaks)),
+                               max(which(q3s[i] > breaks)))]+i-1
+                 }else{
+                   y[c(which.min(abs(q1s[i] - x)), which.min(abs(q3s[i] - x)))]
+                 },
+                 lwd=fancy.median.lwd, col="white", xpd=T, lend=fancy.median.lend)
       }else{
         polygon(x, y, border=fill[i], col=fill[i], lwd=border.lwd, xpd=T)
       }
-      points(data[[i]]$x, data[[i]]$y+i-1, type="l", lwd=border.lwd,
-             col=border[i], xpd=T)
+      points(if(as.hist){steps$x}else{data[[i]]$x},
+             if(as.hist){steps$y+i-1}else{data[[i]]$y+i-1},
+             type="l", lwd=border.lwd, col=border[i], xpd=T)
     }
   })
 }

@@ -7,6 +7,7 @@
 ridgeplot(
   data,
   bw.adj = NULL,
+  breaks = NULL,
   names = NULL,
   hill.overlap = 0.35,
   x.axis.side = 1,
@@ -26,6 +27,7 @@ ridgeplot(
   fancy.hills = TRUE,
   fancy.light.fill = NULL,
   fancy.median.color = NULL,
+  fancy.median.lwd = 2,
   fancy.median.lend = "square",
   parmar = c(2.5, 3, 0.25, 0.25)
 )
@@ -35,6 +37,10 @@ ridgeplot(
 
 \item{bw.adj}{Numeric vector of \code{adjust} values passed to \code{\link[=density]{density()}} if \code{data}
 is provided as numeric vectors rather than pre-computed \code{\link[=density]{density()}} objects.
+See \code{Details}.}
+
+\item{breaks}{Numeric vector of histogram bin breaks. If specified, this will
+override the value of \code{bw.adj} and cause the plot to be rendered as a histogram.
 See \code{Details}.}
 
 \item{names}{Optional list of names for Y axis [default: take names from data]}
@@ -81,6 +87,9 @@ distributions beyond the IQR. Only used if \code{fancy.hills} is \code{TRUE}
 \item{fancy.median.color}{Vector of colors to be used for median indicator if
 \code{fancy.hills} is \code{TRUE} [default: "white"]}
 
+\item{fancy.median.lwd}{Value of \code{lwd} to use for fancy median and IQR lines
+[default: 2]}
+
 \item{fancy.median.lend}{Value of \code{lend} to use for fancy median line
 [default: "square"]}
 
@@ -99,7 +108,11 @@ be converted to \code{\link[=density]{density()}} if needed.
 Optionally, \code{bw.adj} can be supplied alongside a numeric vector-style \code{data}
 to customize the bandwidth for each hill. This vector will be recycled in the
 usual way following R conventions.
+
+Lastly, if \code{breaks} are specified and if \code{data} is provided as a list of
+numeric vectors, no \code{\link[=density]{density()}} will be computed and all hills will be rendered
+as histograms instad.
 }
 \seealso{
-\code{\link[=density]{density()}}
+\code{\link[=density]{density()}}, \code{\link[=hist]{hist()}}
 }
