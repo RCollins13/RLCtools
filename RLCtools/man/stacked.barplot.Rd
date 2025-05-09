@@ -88,18 +88,21 @@ labels? [default: FALSE]}
 \item{major.legend.colors}{Named vector mapping \code{major.values} to colors for
 \code{major.legend} [default: uniform greyscale]}
 
-\item{major.legend.xadj}{X adjustment scalar for major legend [default: -0.04]}
+\item{major.legend.xadj}{X adjustment scalar for major legend
+[default: -0.04]}
 
 \item{minor.labels.on.bars}{Should minor value labels be printed on bars,
 where space is permitting? [default: FALSE]}
 
 \item{minor.label.letter.width}{Proportion of total X-axis to apportion per
-letter for minor labels. Only used if \code{minor.labels.on.bars} is \code{TRUE}. [default: 0.05]}
+letter for minor labels. Only used if \code{minor.labels.on.bars} is \code{TRUE}.
+[default: 0.05]}
 
 \item{minor.label.color}{Color for minor label text. If \code{NULL}, color will be
 dynamically optimized to be most visible against each bar's background color.}
 
-\item{minor.label.cex}{Character expansion parameter for minor label text [default: 5/6]}
+\item{minor.label.cex}{Character expansion parameter for minor label text
+[default: 5/6]}
 
 \item{annotate.counts}{Should exact bar counts be annotated at the tip of
 each bar? [default: no annotations]}
@@ -107,7 +110,8 @@ each bar? [default: no annotations]}
 \item{end.label.xadj}{End-label x-position adjustment, in relative user units.
 Only relevant if \code{annotate.counts} is \code{TRUE}. [default: -0.025]}
 
-\item{end.label.cex}{Character expansion parameter for end label text [default: 5/6]}
+\item{end.label.cex}{Character expansion parameter for end label text
+[default: 5/6]}
 
 \item{orient}{Should the bar length be increasing to the \code{right} or
 \code{left}? [default: \code{right}]}
@@ -123,9 +127,9 @@ minor labels]}
 \item{parmar}{Margin values passed to par()}
 
 \item{details}{By default, \code{colors} will uniformly sample a grayscale palette and
-assign one color to each unique value present in \code{minor.values} (or \code{major.values},
-if \code{minor.values} is not specified). Alternatively, custom color assignments
-can be specified in the following ways:
+assign one color to each unique value present in \code{minor.values} (or
+\code{major.values}, if \code{minor.values} is not specified). Alternatively, custom
+color assignments can be specified in the following ways:
 \enumerate{
 \item As a function to generate a palette, which will be used in place of the
 grayscale palette described above

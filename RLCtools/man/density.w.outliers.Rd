@@ -39,9 +39,11 @@ density estimator or "hist"/"histogram" for histogram}
 \item{min.complexity}{Minimum number of unique values in \code{vals} before
 automatically defaulting to \code{style == "hist"} [default: 30]}
 
-\item{bw.adj}{Bandwidth adjustment for density estimation. See \code{adjust} in \code{\link[stats:density]{stats::density()}}.}
+\item{bw.adj}{Bandwidth adjustment for density estimation. See \code{adjust}
+in \code{\link[stats:density]{stats::density()}}.}
 
-\item{min.bin.width}{Minimum permissible bin width. Only used if \code{style == "hist"}.
+\item{min.bin.width}{Minimum permissible bin width. Only used if
+\code{style == "hist"}.
 [default: automatically determine optimal bin width]}
 
 \item{outlier.lower.bound}{Threshold below which an observation is treated
@@ -50,7 +52,8 @@ as an outlier [default: Q1 - 3*IQR]}
 \item{outlier.upper.bound}{Threshold below which an observation is treated
 as an outlier [default: Q3 + 3*IQR]}
 
-\item{outlier.tick.hex}{Relative height expansion of outlier ticks [default: 0.02]}
+\item{outlier.tick.hex}{Relative height expansion of outlier ticks
+[default: 0.02]}
 
 \item{color}{Color for density area [default: "gray80"]}
 

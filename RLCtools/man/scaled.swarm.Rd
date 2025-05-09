@@ -29,7 +29,8 @@ scaled.swarm(
 
 \item{colors}{Vector of colors for the list elements in \code{values}}
 
-\item{group.names}{(Optional) group names to assign to each list element in \code{values}}
+\item{group.names}{(Optional) group names to assign to each list element
+in \code{values}}
 
 \item{group.widths}{(Optional) vector of custom relative width assignments
 for all groups [default: scale widths proportional to group size]}
@@ -57,7 +58,8 @@ between groups [default: 0.05]}
 
 \item{y.axis.labels}{Custom Y-axis tick labels, if desired}
 
-\item{y.axis.tck}{Value of \code{tck} passed to \code{\link[=clean.axis]{clean.axis()}} [default: -0.025]}
+\item{y.axis.tck}{Value of \code{tck} passed to \code{\link[=clean.axis]{clean.axis()}}
+[default: -0.025]}
 
 \item{parmar}{Margin values passed to par()}
 }
@@ -66,8 +68,8 @@ Plot a set of beeswarm distributions scaled proportional to set size
 }
 \details{
 If \code{values} is supplied as a named list, those names will be used as
-\code{group.names} unless \code{group.names} is explicitly specified. Otherwise, \code{group.names}
-will be set to the ordinal value of each group in \code{values}.
+\code{group.names} unless \code{group.names} is explicitly specified. Otherwise,
+\code{group.names} will be set to the ordinal value of each group in \code{values}.
 }
 \seealso{
 \link{scaled.bars}, \link{clean.axis}

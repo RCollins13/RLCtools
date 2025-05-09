@@ -20,7 +20,8 @@ scaled.bars(
 
 \item{colors}{Named vector of colors to map to \code{values}}
 
-\item{group.names}{(Optional) group names to assign to each list element in \code{values}}
+\item{group.names}{(Optional) group names to assign to each list element
+in \code{values}}
 
 \item{sep.wex}{Relative width scalar for whitespace on the X-axis
 between groups [default: 0.05]}
@@ -38,8 +39,8 @@ Plot a set of stacked barplots scaled proportional to set size
 }
 \details{
 If \code{values} is supplied as a named list, those names will be used as
-\code{group.names} unless \code{group.names} is explicitly specified. Otherwise, \code{group.names}
-will be set to the ordinal value of each group in \code{values}.
+\code{group.names} unless \code{group.names} is explicitly specified. Otherwise,
+\code{group.names} will be set to the ordinal value of each group in \code{values}.
 }
 \seealso{
 \link{scaled.swarm}, \link{clean.axis}

@@ -104,21 +104,26 @@ scatterplot <- function(X, Y, colors=NULL, title=NULL,
 #'
 #' Generate a ridgeplot using base R syntax
 #'
-#' @param data List of numeric vectors or [density()] objects to plot. See `Details`.
-#' @param bw.adj Numeric vector of `adjust` values passed to [density()] if `data`
-#' is provided as numeric vectors rather than pre-computed [density()] objects.
+#' @param data List of numeric vectors or [density()] objects to plot.
 #' See `Details`.
-#' @param breaks Numeric vector of histogram bin breaks. If specified, this will
-#' override the value of `bw.adj` and cause the plot to be rendered as a histogram.
-#' See `Details`.
+#' @param bw.adj Numeric vector of `adjust` values passed to [density()]
+#' if `data` is provided as numeric vectors rather than pre-computed
+#' [density()] objects. See `Details`.
+#' @param breaks Numeric vector of histogram bin breaks. If specified,
+#' this will override the value of `bw.adj` and cause the plot to be rendered
+#' as a histogram. See `Details`.
 #' @param names Optional list of names for Y axis \[default: take names from data\]
-#' @param hill.overlap Relative fraction of overlap bewtween adjacent hills \[default: 0.35\]
-#' @param x.axis.side `side` value for x-axis; `NA` will disable X-axis plotting. \[default: 1\]
+#' @param hill.overlap Relative fraction of overlap bewtween adjacent
+#' hills \[default: 0.35\]
+#' @param x.axis.side `side` value for x-axis; `NA` will disable X-axis
+#' plotting. \[default: 1\]
 #' @param x.title Title for X axis \[default: "Values"\]
 #' @param x.title.line Value of `title.line` passed to [RLCtools::clean.axis()]
 #' @param x.label.line Value of `label.line` passed to [RLCtools::clean.axis()]
-#' @param max.x.ticks Value of `max.ticks` passed to [RLCtools::clean.axis()] \[default: 6\]
-#' @param x.tick.len Value of `tck` passed to [RLCtools::clean.axis()] \[default: -0.025\]
+#' @param max.x.ticks Value of `max.ticks` passed to [RLCtools::clean.axis()]
+#' \[default: 6\]
+#' @param x.tick.len Value of `tck` passed to [RLCtools::clean.axis()]
+#' \[default: -0.025\]
 #' @param xlims Custom X axis limits
 #' @param y.axis Should groups be labeled on the y-axis? \[default: TRUE\]
 #' @param ylims Custom Y axis limits
@@ -134,11 +139,11 @@ scatterplot <- function(X, Y, colors=NULL, title=NULL,
 #' @param fancy.light.fill Vector of colors to use for the sections of the
 #' distributions beyond the IQR. Only used if `fancy.hills` is `TRUE`
 #' \[default: "grey85"\]
-#' @param fancy.median.color Vector of colors to be used for median indicator if
-#' `fancy.hills` is `TRUE` \[default: "white"\]
-#' @param fancy.median.lwd Value of `lwd` to use for fancy median and IQR lines
-#' \[default: 2\]
-#' @param fancy.median.lend Value of `lend` to use for fancy median line
+#' @param fancy.quartile.color Vector of colors to be used for quartile
+#' indicators if `fancy.hills` is `TRUE` \[default: "white"\]
+#' @param fancy.quartile.lwd Value of `lwd` to use for fancy median and
+#' IQR lines \[default: 2\]
+#' @param fancy.quartile.lend Value of `lend` to use for fancy median line
 #' \[default: "square"\]
 #' @param parmar Vector of values passed to par(mar)
 #'
@@ -153,8 +158,8 @@ scatterplot <- function(X, Y, colors=NULL, title=NULL,
 #' usual way following R conventions.
 #'
 #' Lastly, if `breaks` are specified and if `data` is provided as a list of
-#' numeric vectors, no [density()] will be computed and all hills will be rendered
-#' as histograms instad.
+#' numeric vectors, no [density()] will be computed and all hills will be
+#' rendered as histograms instead.
 #'
 #' @seealso [density()], [hist()]
 #'
@@ -165,8 +170,8 @@ ridgeplot <- function(data, bw.adj=NULL, breaks=NULL, names=NULL, hill.overlap=0
                       x.label.line=-0.65, max.x.ticks=6, x.tick.len=-0.025,
                       xlims=NULL, y.axis=TRUE, ylims=NULL, yaxs="r", fill=NULL,
                       border=NULL, border.lwd=2, hill.bottom=0, fancy.hills=TRUE,
-                      fancy.light.fill=NULL, fancy.median.color=NULL,
-                      fancy.median.lwd=2, fancy.median.lend="square",
+                      fancy.light.fill=NULL, fancy.quartile.color=NULL,
+                      fancy.quartile.lwd=2, fancy.quartile.lend="square",
                       parmar=c(2.5, 3, 0.25, 0.25)){
   # Get names before manipulating data
   if(is.null(names)){
@@ -262,13 +267,15 @@ ridgeplot <- function(data, bw.adj=NULL, breaks=NULL, names=NULL, hill.overlap=0
       fancy.light.fill <- rep("grey85", length(data))
     }
     if(length(fancy.light.fill) < length(data)){
-      fancy.light.fill <- rep(fancy.light.fill, length(data) / length(fancy.light.fill))
+      fancy.light.fill <- rep(fancy.light.fill,
+                              length(data) / length(fancy.light.fill))
     }
-    if(is.null(fancy.median.color)){
-      fancy.median.color <- rep("white", length(data))
+    if(is.null(fancy.quartile.color)){
+      fancy.quartile.color <- rep("white", length(data))
     }
-    if(length(fancy.median.color) < length(data)){
-      fancy.median.color <- rep(fancy.median.color, length(data) / length(fancy.median.color))
+    if(length(fancy.quartile.color) < length(data)){
+      fancy.quartile.color <- rep(fancy.quartile.color,
+                                  length(data) / length(fancy.quartile.color))
     }
   }
 
@@ -301,24 +308,30 @@ ridgeplot <- function(data, bw.adj=NULL, breaks=NULL, names=NULL, hill.overlap=0
         if(as.hist){
           left.break.idx <- which(breaks < q1s[i])
           left.step <- step.function(as.numeric(c(breaks[left.break.idx], q1s[i])),
-                                     data[[i]][c(left.break.idx, max(left.break.idx))],
+                                     data[[i]][c(left.break.idx,
+                                                 max(left.break.idx))],
                                      offset=1)
           left.x <- c(left.step$x, rev(left.step$x))
-          left.y <- c(left.step$y, rep(hill.bottom, times=length(left.step$y)))+i-1
+          left.y <- c(left.step$y, rep(hill.bottom,
+                                       times=length(left.step$y)))+i-1
           mid.break.idx <- which(breaks >= q1s[i] & breaks < q3s[i])
           mid.step <- step.function(as.numeric(c(q1s[i], breaks[mid.break.idx])),
-                                    data[[i]][c(min(mid.break.idx)-1, mid.break.idx)],
+                                    data[[i]][c(min(mid.break.idx)-1,
+                                                mid.break.idx)],
                                     offset=1)
           mid.step$x[length(mid.step$x)] <- q3s[i]
           mid.x <- c(mid.step$x, rev(mid.step$x))
-          mid.y <- c(mid.step$y, rep(hill.bottom, times=length(mid.step$y)))+i-1
+          mid.y <- c(mid.step$y, rep(hill.bottom,
+                                     times=length(mid.step$y)))+i-1
           right.break.idx <- which(breaks >= q3s[i])
           right.break.idx <- right.break.idx[-length(right.break.idx)]
-          right.step <- step.function(as.numeric(c(q3s[i], breaks[right.break.idx])),
-                                      data[[i]][c(min(right.break.idx)-1, right.break.idx)],
-                                      offset=1)
+          right.step <- step.function(as.numeric(c(q3s[i],
+                                                   breaks[right.break.idx])),
+                                      data[[i]][c(min(right.break.idx)-1,
+                                                  right.break.idx)], offset=1)
           right.x <- c(right.step$x, rev(right.step$x))
-          right.y <- c(right.step$y, rep(hill.bottom, times=length(right.step$y)))+i-1
+          right.y <- c(right.step$y, rep(hill.bottom,
+                                         times=length(right.step$y)))+i-1
         }else{
           left.idx <- which(x < q1s[i])
           left.x <- x[left.idx]
@@ -342,8 +355,8 @@ ridgeplot <- function(data, bw.adj=NULL, breaks=NULL, names=NULL, hill.overlap=0
                  }else{
                    y[which.min(abs(meds[i] - x))]
                  },
-                 lwd=fancy.median.lwd, col=fancy.median.color[i], xpd=T,
-                 lend=fancy.median.lend)
+                 lwd=fancy.quartile.lwd, col=fancy.quartile.color[i], xpd=T,
+                 lend=fancy.quartile.lend)
         segments(x0=c(q1s[i], q3s[i]), x1=c(q1s[i], q3s[i]),
                  y0=i-1+hill.bottom,
                  y1=if(as.hist){
@@ -352,7 +365,8 @@ ridgeplot <- function(data, bw.adj=NULL, breaks=NULL, names=NULL, hill.overlap=0
                  }else{
                    y[c(which.min(abs(q1s[i] - x)), which.min(abs(q3s[i] - x)))]
                  },
-                 lwd=fancy.median.lwd, col="white", xpd=T, lend=fancy.median.lend)
+                 lwd=fancy.quartile.lwd, col=fancy.quartile.color, xpd=T,
+                 lend=fancy.quartile.lend)
       }else{
         polygon(x, y, border=fill[i], col=fill[i], lwd=border.lwd, xpd=T)
       }
@@ -370,44 +384,60 @@ ridgeplot <- function(data, bw.adj=NULL, breaks=NULL, names=NULL, hill.overlap=0
 #'
 #' @param pvals Numeric vector of untransformed P-values
 #' @param cutoff P-value threshold for significance
-#' @param do.fdr Should points meeting `fdr.cutoff` be accented? \[default: TRUE\]
-#' @param fdr.cutoff Cutoff for highlighting FDR-significant points \[default: 0.01\]
-#' @param print.stats Should genomic inflation statistic be printed on plot? \[default: FALSE\]
+#' @param do.fdr Should points meeting `fdr.cutoff` be accented?
+#' \[default: TRUE\]
+#' @param fdr.cutoff Cutoff for highlighting FDR-significant points
+#' \[default: 0.01\]
+#' @param print.stats Should genomic inflation statistic be printed on
+#' plot? \[default: FALSE\]
 #' @param title (Optional) Plot title
 #' @param title.line Line for `title` \[default: 0\]
 #' @param xmax Maximum X-value to plot \[default: include all points\]
 #' @param ymax Maximum Y-value to plot \[default: smallest P-value\]
-#' @param cap.pvals Should P-values more significant than `ymax` be capped at `ymax`? \[default: FALSE\]
-#' @param x.title Text or expression for x axis title \[default: `Expected -log10 P`\]
-#' @param y.title Text or expression for x axis title \[default: `Observed -log10 P`\]
-#' @param x.label.line Value of `label.line` passed to [`RLCtools::clean.axis()`] \[default: -0.75]
-#' @param x.title.line Value of `title.line` passed to [`RLCtools::clean.axis()`] \[default: 0.35]
-#' @param y.label.line Value of `label.line` passed to [`RLCtools::clean.axis()`] \[default: -0.65]
-#' @param y.title.line Value of `title.line` passed to [`RLCtools::clean.axis()`] \[default: 0.15]
+#' @param cap.pvals Should P-values more significant than `ymax` be capped
+#' at `ymax`? \[default: FALSE\]
+#' @param x.title Text or expression for x axis title
+#' \[default: `Expected -log10 P`\]
+#' @param y.title Text or expression for x axis title
+#' \[default: `Observed -log10 P`\]
+#' @param x.label.line Value of `label.line` passed to
+#' [`RLCtools::clean.axis()`]  \[default: -0.75]
+#' @param x.title.line Value of `title.line` passed to
+#' [`RLCtools::clean.axis()`] \[default: 0.35]
+#' @param y.label.line Value of `label.line` passed to
+#' [`RLCtools::clean.axis()`]  \[default: -0.65]
+#' @param y.title.line Value of `title.line` passed to
+#' [`RLCtools::clean.axis()`] \[default: 0.15]
 #' @param label.cex Scaling factor for label text \[default: 5/6\]
 #' @param ax.title.cex Scaling factor for axis title text \[default: 1\]
 #' @param title.cex Scaling factor for label text \[default: 1\]
-#' @param axis.tck Value of `tck` passed to [`RLCtools::clean.axis()`] \[default: -0.025].
+#' @param axis.tck Value of `tck` passed to [`RLCtools::clean.axis()`]
+#' \[default: -0.025].
 #' @param pt.color Color for all points; see `Details` \[default: "grey35"\]
 #' @param pt.cex Scaling factor for all points \[default: 0.35\]
 #' @param fdr.color Color for FDR-significant points \[default: "grey5"\]
 #' @param fdr.cex Scaling factor for FDR-significant points \[default: 0.7\]
-#' @param plot.ci Should a shaded confidence interval be added to the plot? \[default: TRUE\]
+#' @param plot.ci Should a shaded confidence interval be added to the plot?
+#' \[default: TRUE\]
 #' @param ci.color Color for shaded confidence interval \[default: "gray90"\]
 #' @param oe.line.color Color for observed ~ expected line \[default: "gray50"\]
 #' @param plot Should a QQ plot be generated? \[default: TRUE\]
-#' @param add Should points be added to an existing graphics device? \[default: generate new plot\]
+#' @param add Should points be added to an existing graphics device?
+#' \[default: generate new plot\]
 #' @param parmar Value of `mar` passed to `par()`
-#' @param return.xy Should \(x,y\) coordinates of QQ points be returned? \[default: FALSE\]
+#' @param return.xy Should \(x,y\) coordinates of QQ points be returned?
+#' \[default: FALSE\]
 #'
 #' @details
 #' `cutoff` should be specified in untransformed P-value units; i.e., not -log10
 #'
-#' `ymax` should be specified in transformed P-value units; i.e., -log10\(min desired P\)
+#' `ymax` should be specified in transformed P-value units; i.e.,
+#' -log10\(min desired P\)
 #'
-#' `pt.color` can be specified as a single color or a vector of colors for pointwise color
-#' assignment. If the length of `pt.color` does not match the length of `pvals`,
-#' the values in the `pt.color` vector will be recycled according to R conventions
+#' `pt.color` can be specified as a single color or a vector of colors
+#' for pointwise color assignment. If the length of `pt.color` does not match
+#' the length of `pvals`, the values in the `pt.color` vector will be recycled
+#' according to R conventions
 #'
 #' @returns Dependent on the value of `return.xy`:
 #' - When `TRUE`, returns a data.frame
@@ -415,14 +445,15 @@ ridgeplot <- function(data, bw.adj=NULL, breaks=NULL, names=NULL, hill.overlap=0
 #'
 #' @export plot.qq
 #' @export
-plot.qq <- function(pvals, cutoff=NULL, do.fdr=TRUE, fdr.cutoff=0.01, print.stats=FALSE,
-                    title=NULL, title.line=0, xmax=NULL, ymax=NULL, cap.pvals=FALSE,
-                    x.title=NULL, y.title=NULL, x.label.line=-0.75,
-                    y.label.line=-0.65, x.title.line=0.35, y.title.line=0.15,
-                    label.cex=5/6, ax.title.cex=1, axis.tck=-0.025,
-                    pt.color="grey35", pt.cex=0.35, fdr.color="grey5", fdr.cex=0.7,
-                    plot.ci=TRUE, ci.color="gray90", oe.line.color="gray50",
-                    plot=TRUE, add=FALSE, parmar=c(2.25, 2.5, 0.25, 0.25),
+plot.qq <- function(pvals, cutoff=NULL, do.fdr=TRUE, fdr.cutoff=0.01,
+                    print.stats=FALSE, title=NULL, title.line=0, xmax=NULL,
+                    ymax=NULL, cap.pvals=FALSE, x.title=NULL, y.title=NULL,
+                    x.label.line=-0.75, y.label.line=-0.65, x.title.line=0.35,
+                    y.title.line=0.15, label.cex=5/6, ax.title.cex=1,
+                    axis.tck=-0.025, pt.color="grey35", pt.cex=0.35,
+                    fdr.color="grey5", fdr.cex=0.7, plot.ci=TRUE,
+                    ci.color="gray90", oe.line.color="gray50", plot=TRUE,
+                    add=FALSE, parmar=c(2.25, 2.5, 0.25, 0.25),
                     return.xy=FALSE){
   # Format P-values and pointwise colors
   if (!is.numeric(pvals)){
@@ -526,7 +557,8 @@ plot.qq <- function(pvals, cutoff=NULL, do.fdr=TRUE, fdr.cutoff=0.01, print.stat
       y.labs <- y.at <- axTicks(2)
       if(any.pvals.rounded){
         y.at <- unique(c(y.at[-length(y.at)], ymax))
-        y.labs <- c(y.at[-length(y.at)], paste("\"\" > ", y.at[length(y.at)], sep=""))
+        y.labs <- c(y.at[-length(y.at)],
+                    paste("\"\" > ", y.at[length(y.at)], sep=""))
       }
       if(is.null(y.title)){
         y.title <- expression(Observed ~ ~-log[10] ~ italic(P))
@@ -573,18 +605,22 @@ manhattan <- function(stats, p.column, chrom.colors, gw.sig, pt.cex=0.3,
   # Add points
   set.seed(2024)
   stats <- stats[sample(1:nrow(stats), size=nrow(stats)), ]
-  points(stats[, c("pos", p.column)], pch=19, cex=pt.cex, col=chrom.colors[stats$chrom])
+  points(stats[, c("pos", p.column)], pch=19,
+         cex=pt.cex, col=chrom.colors[stats$chrom])
 
   # Add axes
   clean.axis(1, at=c(0, cumsum(contig.lengths)), tck=0.025, infinite=TRUE,
              labels=NA, title=x.title, title.line=0)
   sapply(1:length(contig.lengths), function(x){
-    axis(1, at=((c(0, cumsum(contig.lengths[-24])) + cumsum(contig.lengths))/2)[x],
-         tick=F, cex.axis=4/6, labels=gsub("^chr", "", names(contig.lengths)[x]),
+    axis(1,
+         at=((c(0, cumsum(contig.lengths[-24])) + cumsum(contig.lengths))/2)[x],
+         tick=F, cex.axis=4/6,
+         labels=gsub("^chr", "", names(contig.lengths)[x]),
          col.axis=chrom.colors[x],
          line=c(-0.8, -1.3)[as.integer((x %% 2) == 1) + 1])
   })
-  clean.axis(2, title=bquote(-log[10] ~ italic(P)), infinite.positive=T, title.line=0.2)
+  clean.axis(2, title=bquote(-log[10] ~ italic(P)),
+             infinite.positive=T, title.line=0.2)
   mtext(3, text=title, line=0)
 }
 
@@ -595,7 +631,8 @@ manhattan <- function(stats, p.column, chrom.colors, gw.sig, pt.cex=0.3,
 #'
 #' @param values List of character vectors of values to plot
 #' @param colors Named vector of colors to map to `values`
-#' @param group.names (Optional) group names to assign to each list element in `values`
+#' @param group.names (Optional) group names to assign to each list element
+#' in `values`
 #' @param sep.wex Relative width scalar for whitespace on the X-axis
 #' between groups \[default: 0.05\]
 #' @param title (Optional) title to be printed in top-right corner
@@ -604,8 +641,8 @@ manhattan <- function(stats, p.column, chrom.colors, gw.sig, pt.cex=0.3,
 #' @param parmar Margin values passed to par()
 #'
 #' @details If `values` is supplied as a named list, those names will be used as
-#' `group.names` unless `group.names` is explicitly specified. Otherwise, `group.names`
-#' will be set to the ordinal value of each group in `values`.
+#' `group.names` unless `group.names` is explicitly specified. Otherwise,
+#' `group.names` will be set to the ordinal value of each group in `values`.
 #'
 #' @seealso [RLCtools::scaled.swarm], [RLCtools::clean.axis]
 #'
@@ -632,7 +669,9 @@ scaled.bars <- function(values, colors, group.names=NULL, sep.wex=0.05,
   n.elig.vals <- length(colors)
   n.groups <- length(values)
   group.size <- apply(counts.df, 2, sum)
-  pct.df <- do.call("cbind", lapply(1:n.groups, function(i){as.numeric(counts.df[, i] / group.size[i])}))
+  pct.df <- do.call("cbind", lapply(1:n.groups, function(i){
+    as.numeric(counts.df[, i] / group.size[i])
+    }))
   rownames(pct.df) <- names(colors)
   colnames(pct.df) <- group.names
   cumpct.df <- apply(pct.df, 2, cumsum)
@@ -652,7 +691,8 @@ scaled.bars <- function(values, colors, group.names=NULL, sep.wex=0.05,
   axis(1, at=x.axis.at, line=-1, tick=F, labels=group.names, xpd=T)
 
   # Add Y axis
-  clean.axis(2, at=seq(0, 1, 0.25), labels=rev(paste(seq(0, 100, 25), "%", sep="")),
+  clean.axis(2, at=seq(0, 1, 0.25),
+             labels=rev(paste(seq(0, 100, 25), "%", sep="")),
              cex.axis=5/6, infinite=FALSE, label.line=-0.7, title=NULL)
 
   # Add top scale bar
@@ -693,7 +733,8 @@ scaled.bars <- function(values, colors, group.names=NULL, sep.wex=0.05,
     rect(xleft=group.lefts[i], xright=group.rights[i],
          ybottom=c(0, cumpct.df[-n.elig.vals, i]), ytop=cumpct.df[, i],
          col=colors, border=NA, bty="n")
-    rect(xleft=group.lefts[i], xright=group.rights[i], ybottom=0, ytop=1, col=NA, xpd=T)
+    rect(xleft=group.lefts[i], xright=group.rights[i],
+         ybottom=0, ytop=1, col=NA, xpd=T)
   })
 }
 
@@ -704,7 +745,8 @@ scaled.bars <- function(values, colors, group.names=NULL, sep.wex=0.05,
 #'
 #' @param values List of numeric vectors of values to plot
 #' @param colors Vector of colors for the list elements in `values`
-#' @param group.names (Optional) group names to assign to each list element in `values`
+#' @param group.names (Optional) group names to assign to each list element
+#' in `values`
 #' @param group.widths (Optional) vector of custom relative width assignments
 #' for all groups \[default: scale widths proportional to group size\]
 #' @param sep.wex Relative width scalar for whitespace on the X-axis
@@ -719,12 +761,13 @@ scaled.bars <- function(values, colors, group.names=NULL, sep.wex=0.05,
 #' @param y.title.line Value of `line` for `y.title`
 #' @param y.axis.at Custom Y-axis tick positions, if desired
 #' @param y.axis.labels Custom Y-axis tick labels, if desired
-#' @param y.axis.tck Value of `tck` passed to [RLCtools::clean.axis()] \[default: -0.025\]
+#' @param y.axis.tck Value of `tck` passed to [RLCtools::clean.axis()]
+#' \[default: -0.025\]
 #' @param parmar Margin values passed to par()
 #'
 #' @details If `values` is supplied as a named list, those names will be used as
-#' `group.names` unless `group.names` is explicitly specified. Otherwise, `group.names`
-#' will be set to the ordinal value of each group in `values`.
+#' `group.names` unless `group.names` is explicitly specified. Otherwise,
+#' `group.names` will be set to the ordinal value of each group in `values`.
 #'
 #' @seealso [RLCtools::scaled.bars], [RLCtools::clean.axis]
 #'
@@ -758,7 +801,8 @@ scaled.swarm <- function(values, colors, group.names=NULL, group.widths=NULL,
   # Get plot dimensions
   if(!is.null(group.widths)){
     if(length(group.widths) != length(values)){
-      stop("Length of custom `group.widths` does not match number of groups in `values`")
+      stop(paste("Length of custom `group.widths` does not match number of",
+                 "groups in `values`"))
     }
     # Re-normalize custom widths
     group.widths <- group.widths / sum(group.widths)
@@ -821,17 +865,21 @@ scaled.swarm <- function(values, colors, group.names=NULL, group.widths=NULL,
 #'
 #' @param surv.models List of one or more [`survival::summary.survfit`] objects
 #' @param colors Vector of colors for the list elements in `surv.models`
-#' @param group.names (Optional) group names to assign to each list element in `surv.models`
+#' @param group.names (Optional) group names to assign to each list element
+#' in `surv.models`
 #' @param km.lwd Line width for Kaplan-Meier curves \[default: 3\]
-#' @param ci.alpha Transparency value `alpha` for confidence interval shading \[default: 0.1\]
+#' @param ci.alpha Transparency value `alpha` for confidence interval
+#' shading \[default: 0.1\]
 #' @param legend Should a legend be plotted?
 #' @param legend.names (Optional) mapping of `values` to labels for legend
-#' @param legend.label.spacing Minimum vertical spacing between legend labels \[default: 0.075\]
-#' @param legend.label.cex Character expansion value for text labels in legend \[default: 1\]
+#' @param legend.label.spacing Minimum vertical spacing between legend
+#' labels \[default: 0.075\]
+#' @param legend.label.cex Character expansion value for text labels in
+#' legend \[default: 1\]
 #' @param title (Optional) Title for plot
 #' @param y.title Title for Y-axis \[default: "Survival Probability"\]
-#' @param xlims (Optional) two-element vector of start and stop values for X-axis,
-#' specified in days (or years if `time.is.days` is `FALSE`)
+#' @param xlims (Optional) two-element vector of start and stop values for
+#' X-axis, specified in days (or years if `time.is.days` is `FALSE`)
 #' @param x.label.line Line for X-axis labels \[default: -0.75\]
 #' @param x.title.line Line for X-axis title \[default: 0\]
 #' @param x.tck X-axis tick length \[default: -0.0175\]
@@ -882,8 +930,14 @@ km.curve <- function(surv.models, colors, group.names=NULL, km.lwd=3, ci.alpha=0
         x.top <- rev(x.bottom)
         y.bottom <- c(1, 1, RLCtools::stretch.vector(surv.models[[i]]$lower, 2)[-c(2*n.times-c(0, 1))])
         y.top <- rev(c(1, 1, RLCtools::stretch.vector(surv.models[[i]]$upper, 2)[-c(2*n.times-c(0, 1))]))
-        polygon(x=c(x.bottom, x.top), y=c(y.bottom, y.top), border=NA, bty="n",
-                col=if(layer == "white"){"white"}else{adjustcolor(colors[[i]], alpha=ci.alpha)})
+        if(layer == "white"){
+          ci.col <- "white"
+        }else{
+          ci.col <- adjustcolor(colors[[i]], alpha=ci.alpha)
+        }
+        polygon(x=c(x.bottom, x.top), y=c(y.bottom, y.top),
+                border=NA, bty="n",
+                col=ci.col)
       }
     })
   }
@@ -909,7 +963,8 @@ km.curve <- function(surv.models, colors, group.names=NULL, km.lwd=3, ci.alpha=0
   # Add axes
   clean.axis(1, at=if(time.is.days){x.ax.years*365}else{x.ax.years},
              labels=x.ax.years, infinite=TRUE,
-             title="Years", label.line=x.label.line, title.line=x.title.line, tck=x.tck)
+             title="Years", label.line=x.label.line,
+             title.line=x.title.line, tck=x.tck)
   clean.axis(2, title=y.title, infinite=FALSE, tck=-0.0175)
   mtext(title, side=3, line=0)
 
@@ -921,7 +976,8 @@ km.curve <- function(surv.models, colors, group.names=NULL, km.lwd=3, ci.alpha=0
       if(length(ss$time) == 0){1}else{
         dist.to.rb <- ss$time - xlims[2]
         if(any(dist.to.rb > 0)){
-          closest <- which(dist.to.rb == min(dist.to.rb[which(dist.to.rb >= 0)], na.rm=T) & dist.to.rb >= 0)
+          closest <- which(dist.to.rb == min(dist.to.rb[which(dist.to.rb >= 0)],
+                                             na.rm=T) & dist.to.rb >= 0)
           closest <- max(c(1, closest-1))
         }else{
           closest <- which(dist.to.rb == max(dist.to.rb, na.rm=T))
@@ -947,14 +1003,17 @@ km.curve <- function(surv.models, colors, group.names=NULL, km.lwd=3, ci.alpha=0
 #' density estimator or "hist"/"histogram" for histogram
 #' @param min.complexity Minimum number of unique values in `vals` before
 #' automatically defaulting to `style == "hist"` \[default: 30\]
-#' @param bw.adj Bandwidth adjustment for density estimation. See `adjust` in [stats::density()].
-#' @param min.bin.width Minimum permissible bin width. Only used if `style == "hist"`.
+#' @param bw.adj Bandwidth adjustment for density estimation. See `adjust`
+#' in [stats::density()].
+#' @param min.bin.width Minimum permissible bin width. Only used if
+#' `style == "hist"`.
 #' \[default: automatically determine optimal bin width\]
 #' @param outlier.lower.bound Threshold below which an observation is treated
 #' as an outlier \[default: Q1 - 3*IQR\]
 #' @param outlier.upper.bound Threshold below which an observation is treated
 #' as an outlier \[default: Q3 + 3*IQR\]
-#' @param outlier.tick.hex Relative height expansion of outlier ticks \[default: 0.02\]
+#' @param outlier.tick.hex Relative height expansion of outlier ticks
+#' \[default: 0.02\]
 #' @param color Color for density area \[default: "gray80"\]
 #' @param border Color for density border \[default: "black"\]
 #' @param outlier.color Color for outlier ticks \[default: same value is `border`\]
@@ -1105,19 +1164,23 @@ density.w.outliers <- function(vals, style="density", min.complexity=30, bw.adj=
 #' labels? \[default: FALSE\]
 #' @param major.legend.colors Named vector mapping `major.values` to colors for
 #' `major.legend` \[default: uniform greyscale\]
-#' @param major.legend.xadj X adjustment scalar for major legend \[default: -0.04\]
+#' @param major.legend.xadj X adjustment scalar for major legend
+#' \[default: -0.04\]
 #' @param minor.labels.on.bars Should minor value labels be printed on bars,
 #' where space is permitting? \[default: FALSE\]
 #' @param minor.label.letter.width Proportion of total X-axis to apportion per
-#' letter for minor labels. Only used if `minor.labels.on.bars` is `TRUE`. \[default: 0.05\]
+#' letter for minor labels. Only used if `minor.labels.on.bars` is `TRUE`.
+#' \[default: 0.05\]
 #' @param minor.label.color Color for minor label text. If `NULL`, color will be
 #' dynamically optimized to be most visible against each bar's background color.
-#' @param minor.label.cex Character expansion parameter for minor label text \[default: 5/6\]
+#' @param minor.label.cex Character expansion parameter for minor label text
+#' \[default: 5/6\]
 #' @param annotate.counts Should exact bar counts be annotated at the tip of
 #' each bar? \[default: no annotations\]
 #' @param end.label.xadj End-label x-position adjustment, in relative user units.
 #' Only relevant if `annotate.counts` is `TRUE`. \[default: -0.025]
-#' @param end.label.cex Character expansion parameter for end label text \[default: 5/6\]
+#' @param end.label.cex Character expansion parameter for end label text
+#' \[default: 5/6\]
 #' @param orient Should the bar length be increasing to the `right` or
 #' `left`? \[default: `right`\]
 #' @param custom.major.order Specific order of major values to use for bars
@@ -1129,9 +1192,9 @@ density.w.outliers <- function(vals, style="density", min.complexity=30, bw.adj=
 #'
 #' @param details
 #' By default, `colors` will uniformly sample a grayscale palette and
-#' assign one color to each unique value present in `minor.values` (or `major.values`,
-#' if `minor.values` is not specified). Alternatively, custom color assignments
-#' can be specified in the following ways:
+#' assign one color to each unique value present in `minor.values` (or
+#' `major.values`, if `minor.values` is not specified). Alternatively, custom
+#' color assignments can be specified in the following ways:
 #'
 #' 1. As a function to generate a palette, which will be used in place of the
 #' grayscale palette described above
@@ -1156,12 +1219,12 @@ stacked.barplot <- function(major.values, minor.values=NULL, colors=NULL,
                             add.legend=TRUE, legend.xadj=-0.075,
                             major.legend=FALSE, major.legend.colors=NULL,
                             major.legend.xadj=-0.04, minor.labels.on.bars=FALSE,
-                            minor.label.letter.width=0.05, minor.label.color=NULL,
-                            minor.label.cex=5/6, annotate.counts=FALSE,
-                            end.label.xadj=-0.025, end.label.cex=5/6,
-                            orient="right", custom.major.order=NULL,
-                            custom.minor.order=NULL, sort.minor=FALSE,
-                            parmar=c(0.5, 3, 2.5, 0.5)){
+                            minor.label.letter.width=0.05,
+                            minor.label.color=NULL, minor.label.cex=5/6,
+                            annotate.counts=FALSE,end.label.xadj=-0.025,
+                            end.label.cex=5/6, orient="right",
+                            custom.major.order=NULL, custom.minor.order=NULL,
+                            sort.minor=FALSE, parmar=c(0.5, 3, 2.5, 0.5)){
   # Check if minor values are provided
   no.minor <- is.null(minor.values)
   if(no.minor){
@@ -1183,7 +1246,8 @@ stacked.barplot <- function(major.values, minor.values=NULL, colors=NULL,
   minor.table <- table(sort(minor.values))
   if(!is.null(custom.minor.order)){
     if(!all(length(union(names(minor.table), custom.minor.order)) %in% c(length(minor.table), length(custom.minor.order)))){
-      warning("Not all values of `custom.minor.order` appear in minor values (or vice versa)")
+      warning(paste("Not all values of `custom.minor.order` appear in minor",
+                    "values (or vice versa)"))
     }
     minor.table <- minor.table[custom.minor.order]
   }else if(sort.minor){
@@ -1191,7 +1255,8 @@ stacked.barplot <- function(major.values, minor.values=NULL, colors=NULL,
   }
   if(!is.null(custom.major.order)){
     if(!all(length(union(names(major.table), custom.major.order)) %in% c(length(major.table), length(custom.major.order)))){
-      warning("Not all values of `custom.major.order` appear in major values (or vice versa)")
+      warning(paste("Not all values of `custom.major.order` appear in major",
+                    "values (or vice versa)"))
     }
     major.table <- major.table[custom.major.order]
     if(no.minor){
@@ -1220,7 +1285,8 @@ stacked.barplot <- function(major.values, minor.values=NULL, colors=NULL,
     names(inner.borders) <- names(minor.table)
   }
   if(length(inner.borders) < length(minor.table)){
-    inner.borders <- rep(inner.borders, length(minor.table) / length(inner.borders))
+    inner.borders <- rep(inner.borders,
+                         length(minor.table) / length(inner.borders))
     names(inner.borders) <- names(minor.table)
   }
   if(is.null(outer.borders)){
@@ -1228,7 +1294,8 @@ stacked.barplot <- function(major.values, minor.values=NULL, colors=NULL,
     names(outer.borders) <- names(major.table)
   }
   if(length(outer.borders) < length(major.table)){
-    outer.borders <- rep(outer.borders, length(major.table) / length(outer.borders))
+    outer.borders <- rep(outer.borders,
+                         length(major.table) / length(outer.borders))
     names(outer.borders) <- names(major.table)
   }
 
@@ -1248,7 +1315,8 @@ stacked.barplot <- function(major.values, minor.values=NULL, colors=NULL,
     })
   }
   if(!is.na(x.axis.side)){
-    clean.axis(x.axis.side, label.units=if(as.proportion){"percent"}else{"count"},
+    clean.axis(x.axis.side,
+               label.units=if(as.proportion){"percent"}else{"count"},
                infinite.positive=TRUE, title=x.title, title.line=x.title.line,
                label.line=x.label.line, tck=x.axis.tck)
   }
@@ -1314,7 +1382,11 @@ stacked.barplot <- function(major.values, minor.values=NULL, colors=NULL,
       major.legend.colors <- greyscale.palette(length(major.table))
       names(major.legend.colors) <- rownames(plot.df)
     }
-    maj.leg.xadj <- if(orient == "left"){-major.legend.xadj}else{major.legend.xadj}
+    if(orient == "left"){
+      maj.leg.xadj <- -major.legend.xadj
+    }else{
+      maj.leg.xadj <- major.legend.xadj
+    }
     points(x=rep(maj.leg.xadj*diff(par("usr")[1:2]), nrow(plot.df)),
            y=(1:nrow(plot.df)) - 0.5, pch=23, xpd=T, col="black",
            bg=major.legend.colors[rownames(plot.df)])

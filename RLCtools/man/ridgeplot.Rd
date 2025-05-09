@@ -26,28 +26,31 @@ ridgeplot(
   hill.bottom = 0,
   fancy.hills = TRUE,
   fancy.light.fill = NULL,
-  fancy.median.color = NULL,
-  fancy.median.lwd = 2,
-  fancy.median.lend = "square",
+  fancy.quartile.color = NULL,
+  fancy.quartile.lwd = 2,
+  fancy.quartile.lend = "square",
   parmar = c(2.5, 3, 0.25, 0.25)
 )
 }
 \arguments{
-\item{data}{List of numeric vectors or \code{\link[=density]{density()}} objects to plot. See \code{Details}.}
-
-\item{bw.adj}{Numeric vector of \code{adjust} values passed to \code{\link[=density]{density()}} if \code{data}
-is provided as numeric vectors rather than pre-computed \code{\link[=density]{density()}} objects.
+\item{data}{List of numeric vectors or \code{\link[=density]{density()}} objects to plot.
 See \code{Details}.}
 
-\item{breaks}{Numeric vector of histogram bin breaks. If specified, this will
-override the value of \code{bw.adj} and cause the plot to be rendered as a histogram.
-See \code{Details}.}
+\item{bw.adj}{Numeric vector of \code{adjust} values passed to \code{\link[=density]{density()}}
+if \code{data} is provided as numeric vectors rather than pre-computed
+\code{\link[=density]{density()}} objects. See \code{Details}.}
+
+\item{breaks}{Numeric vector of histogram bin breaks. If specified,
+this will override the value of \code{bw.adj} and cause the plot to be rendered
+as a histogram. See \code{Details}.}
 
 \item{names}{Optional list of names for Y axis [default: take names from data]}
 
-\item{hill.overlap}{Relative fraction of overlap bewtween adjacent hills [default: 0.35]}
+\item{hill.overlap}{Relative fraction of overlap bewtween adjacent
+hills [default: 0.35]}
 
-\item{x.axis.side}{\code{side} value for x-axis; \code{NA} will disable X-axis plotting. [default: 1]}
+\item{x.axis.side}{\code{side} value for x-axis; \code{NA} will disable X-axis
+plotting. [default: 1]}
 
 \item{x.title}{Title for X axis [default: "Values"]}
 
@@ -55,9 +58,11 @@ See \code{Details}.}
 
 \item{x.label.line}{Value of \code{label.line} passed to \code{\link[=clean.axis]{clean.axis()}}}
 
-\item{max.x.ticks}{Value of \code{max.ticks} passed to \code{\link[=clean.axis]{clean.axis()}} [default: 6]}
+\item{max.x.ticks}{Value of \code{max.ticks} passed to \code{\link[=clean.axis]{clean.axis()}}
+[default: 6]}
 
-\item{x.tick.len}{Value of \code{tck} passed to \code{\link[=clean.axis]{clean.axis()}} [default: -0.025]}
+\item{x.tick.len}{Value of \code{tck} passed to \code{\link[=clean.axis]{clean.axis()}}
+[default: -0.025]}
 
 \item{xlims}{Custom X axis limits}
 
@@ -84,13 +89,13 @@ be computed if \code{data} is provided as raw values, not pre-computed densities
 distributions beyond the IQR. Only used if \code{fancy.hills} is \code{TRUE}
 [default: "grey85"]}
 
-\item{fancy.median.color}{Vector of colors to be used for median indicator if
-\code{fancy.hills} is \code{TRUE} [default: "white"]}
+\item{fancy.quartile.color}{Vector of colors to be used for quartile
+indicators if \code{fancy.hills} is \code{TRUE} [default: "white"]}
 
-\item{fancy.median.lwd}{Value of \code{lwd} to use for fancy median and IQR lines
-[default: 2]}
+\item{fancy.quartile.lwd}{Value of \code{lwd} to use for fancy median and
+IQR lines [default: 2]}
 
-\item{fancy.median.lend}{Value of \code{lend} to use for fancy median line
+\item{fancy.quartile.lend}{Value of \code{lend} to use for fancy median line
 [default: "square"]}
 
 \item{parmar}{Vector of values passed to par(mar)}
@@ -110,8 +115,8 @@ to customize the bandwidth for each hill. This vector will be recycled in the
 usual way following R conventions.
 
 Lastly, if \code{breaks} are specified and if \code{data} is provided as a list of
-numeric vectors, no \code{\link[=density]{density()}} will be computed and all hills will be rendered
-as histograms instad.
+numeric vectors, no \code{\link[=density]{density()}} will be computed and all hills will be
+rendered as histograms instead.
 }
 \seealso{
 \code{\link[=density]{density()}}, \code{\link[=hist]{hist()}}

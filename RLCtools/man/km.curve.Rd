@@ -29,26 +29,30 @@ km.curve(
 
 \item{colors}{Vector of colors for the list elements in \code{surv.models}}
 
-\item{group.names}{(Optional) group names to assign to each list element in \code{surv.models}}
+\item{group.names}{(Optional) group names to assign to each list element
+in \code{surv.models}}
 
 \item{km.lwd}{Line width for Kaplan-Meier curves [default: 3]}
 
-\item{ci.alpha}{Transparency value \code{alpha} for confidence interval shading [default: 0.1]}
+\item{ci.alpha}{Transparency value \code{alpha} for confidence interval
+shading [default: 0.1]}
 
 \item{legend}{Should a legend be plotted?}
 
 \item{legend.names}{(Optional) mapping of \code{values} to labels for legend}
 
-\item{legend.label.spacing}{Minimum vertical spacing between legend labels [default: 0.075]}
+\item{legend.label.spacing}{Minimum vertical spacing between legend
+labels [default: 0.075]}
 
-\item{legend.label.cex}{Character expansion value for text labels in legend [default: 1]}
+\item{legend.label.cex}{Character expansion value for text labels in
+legend [default: 1]}
 
 \item{title}{(Optional) Title for plot}
 
 \item{y.title}{Title for Y-axis [default: "Survival Probability"]}
 
-\item{xlims}{(Optional) two-element vector of start and stop values for X-axis,
-specified in days (or years if \code{time.is.days} is \code{FALSE})}
+\item{xlims}{(Optional) two-element vector of start and stop values for
+X-axis, specified in days (or years if \code{time.is.days} is \code{FALSE})}
 
 \item{x.label.line}{Line for X-axis labels [default: -0.75]}
 
