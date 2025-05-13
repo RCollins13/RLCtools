@@ -365,7 +365,7 @@ ridgeplot <- function(data, bw.adj=NULL, breaks=NULL, names=NULL, hill.overlap=0
                  }else{
                    y[c(which.min(abs(q1s[i] - x)), which.min(abs(q3s[i] - x)))]
                  },
-                 lwd=fancy.quartile.lwd, col=fancy.quartile.color, xpd=T,
+                 lwd=fancy.quartile.lwd, col=fancy.quartile.color[i], xpd=T,
                  lend=fancy.quartile.lend)
       }else{
         polygon(x, y, border=fill[i], col=fill[i], lwd=border.lwd, xpd=T)

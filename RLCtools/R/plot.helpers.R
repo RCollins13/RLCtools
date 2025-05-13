@@ -364,7 +364,7 @@ yaxis.legend <- function(legend.names, x, y.positions, sep.wex,
 
   if(parse.labels){
     sapply(1:length(legend.names), function(i){
-      text(x=x + sep.wex, y=leg.at[i], labels=parse(text=legend.names),
+      text(x=x + sep.wex, y=leg.at[i], labels=parse(text=legend.names[i]),
            xpd=T, pos=4, cex=label.cex, col=label.colors[i], font=label.font)
     })
   }else{
