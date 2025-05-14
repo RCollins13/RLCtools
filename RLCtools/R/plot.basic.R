@@ -312,6 +312,7 @@ ridgeplot <- function(data, bw.adj=NULL, breaks=NULL, names=NULL, hill.overlap=0
                                                  max(left.break.idx))],
                                      offset=1)
           left.x <- c(left.step$x, rev(left.step$x))
+          left.x[which(left.x > breaks[max(left.break.idx)+1])] <- breaks[max(left.break.idx)+1]
           left.y <- c(left.step$y, rep(hill.bottom,
                                        times=length(left.step$y)))+i-1
           mid.break.idx <- which(breaks >= q1s[i] & breaks < q3s[i])
@@ -349,21 +350,16 @@ ridgeplot <- function(data, bw.adj=NULL, breaks=NULL, names=NULL, hill.overlap=0
         polygon(right.x, right.y, border=fancy.light.fill[i],
                 col=fancy.light.fill[i], xpd=T, lwd=0.5)
         polygon(mid.x, mid.y, border=fill[i], col=fill[i], xpd=T, lwd=0.5)
-        segments(x0=meds[i], x1=meds[i], y0=i-1+hill.bottom,
-                 y1=if(as.hist){
-                   data[[i]][max(which(meds[i] > breaks))]+i-1
-                 }else{
-                   y[which.min(abs(meds[i] - x))]
-                 },
-                 lwd=fancy.quartile.lwd, col=fancy.quartile.color[i], xpd=T,
-                 lend=fancy.quartile.lend)
-        segments(x0=c(q1s[i], q3s[i]), x1=c(q1s[i], q3s[i]),
+        segments(x0=c(q1s[i], meds[i], q3s[i]), x1=c(q1s[i], meds[i], q3s[i]),
                  y0=i-1+hill.bottom,
                  y1=if(as.hist){
                    data[[i]][c(max(which(q1s[i] > breaks)),
+                               max(which(meds[i] > breaks)),
                                max(which(q3s[i] > breaks)))]+i-1
                  }else{
-                   y[c(which.min(abs(q1s[i] - x)), which.min(abs(q3s[i] - x)))]
+                   y[c(which.min(abs(q1s[i] - x)),
+                       which.min(abs(meds[i] - x)),
+                       which.min(abs(q3s[i] - x)))]
                  },
                  lwd=fancy.quartile.lwd, col=fancy.quartile.color[i], xpd=T,
                  lend=fancy.quartile.lend)

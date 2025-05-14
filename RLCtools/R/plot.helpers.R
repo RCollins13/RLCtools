@@ -632,14 +632,12 @@ step.function <- function(x, y, offset=0.5, interpolate=FALSE){
         fidx.r <- idx.r + 1
         if(is.left.edge){
           y.step[idx.l:idx.r] <- y.step[fidx.r]
-        }else{
-          x.step[fidx.l:y.split] <- x.mid
-          y.step[idx.l:y.split] <- y.step[fidx.l]
-        }
-        if(is.right.edge){
+        }else if(is.right.edge){
           y.step[idx.l:idx.r] <- y.step[fidx.l]
         }else{
+          x.step[fidx.l:y.split] <- x.mid
           x.step[(y.split+1):fidx.r] <- x.mid
+          y.step[idx.l:y.split] <- y.step[fidx.l]
           y.step[(y.split+1):idx.r] <- y.step[fidx.l]
         }
       }
