@@ -4,7 +4,17 @@
 \alias{staple.bracket}
 \title{Staple-style bracket}
 \usage{
-staple.bracket(x0, x1, y0, y1, orient = "vertical", staple.len = 0.25, ...)
+staple.bracket(
+  x0,
+  x1,
+  y0,
+  y1,
+  orient = "vertical",
+  staple.len = 0.25,
+  staple.accent.color = NULL,
+  accent.len = staple.len/2,
+  ...
+)
 }
 \arguments{
 \item{x0}{First x position for bracket}
@@ -15,9 +25,15 @@ staple.bracket(x0, x1, y0, y1, orient = "vertical", staple.len = 0.25, ...)
 
 \item{y1}{Second y position for bracket}
 
-\item{orient}{Orientation of bracket; either \code{"vertical"} or \code{"horizontal"} [default: vertical]}
+\item{orient}{Orientation of bracket; either \code{"vertical"} or \code{"horizontal"}
+[default: vertical]}
 
 \item{staple.len}{Length of bracket end markers [default: 0.25]}
+
+\item{staple.accent.color}{Fill color for optional staple accent
+[default: no fill]}
+
+\item{accent.len}{Length of staple accent [default: \code{staple.len / 2}]}
 
 \item{...}{Other parameters passed to \code{\link[=segments]{segments()}}}
 }

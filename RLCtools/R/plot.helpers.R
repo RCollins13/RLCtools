@@ -565,21 +565,30 @@ title.case <- function(x, case="title"){
 #' @param x1 Second x position for bracket
 #' @param y0 First y position for bracket
 #' @param y1 Second y position for bracket
-#' @param orient Orientation of bracket; either `"vertical"` or `"horizontal"` \[default: vertical\]
+#' @param orient Orientation of bracket; either `"vertical"` or `"horizontal"`
+#' \[default: vertical\]
 #' @param staple.len Length of bracket end markers \[default: 0.25\]
+#' @param staple.accent.color Fill color for optional staple accent
+#' \[default: no fill\]
+#' @param accent.len Length of staple accent \[default: `staple.len / 2`\]
 #' @param ... Other parameters passed to [segments()]
 #'
 #' @export staple.bracket
 #' @export
-staple.bracket <- function(x0, x1, y0, y1, orient="vertical", staple.len=0.25, ...){
-  segments(x0=x0, x1=x1, y0=y0, y1=y1, xpd=T, ...)
+staple.bracket <- function(x0, x1, y0, y1, orient="vertical", staple.len=0.25,
+                           staple.accent.color=NULL, accent.len=staple.len/2, ...){
   if(orient == "horizontal"){
+    polygon(x=c(x0, x0, x1, x1), y=c(y0-accent.len, y0, y1, y1-accent.len),
+            border=NA, col=staple.accent.color, xpd=T)
     segments(x0=x0, x1=x0, y0=y0, y1=y0-staple.len, xpd=T, ...)
     segments(x0=x1, x1=x1, y0=y1, y1=y1-staple.len, xpd=T, ...)
   }else{
+    polygon(x=c(x0+accent.len, x0, x1, x1+accent.len), y=c(y0, y0, y1, y1),
+            border=NA, col=staple.accent.color, xpd=T)
     segments(x0=x0, x1=x0+staple.len, y0=y0, y1=y0, xpd=T, ...)
     segments(x0=x1, x1=x1+staple.len, y0=y1, y1=y1, xpd=T, ...)
   }
+  segments(x0=x0, x1=x1, y0=y0, y1=y1, xpd=T, ...)
 }
 
 

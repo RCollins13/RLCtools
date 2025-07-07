@@ -12,41 +12,6 @@
 # Mathematical helper functions
 
 
-#' Arithmetic mode
-#'
-#' Compute the arithmetic mode of a vector
-#'
-#' @param values Vector of values
-#' @param break.ties Specify how ties should be broken. See `Details`. \[default: "all"\]
-#' @param seed Random seed to break ties, if needed. \[default: 2022\]
-#'
-#' @details Recognized values for `break.ties` include:
-#' * `all` : return all tied modes
-#' * `first` : return the first mode value encountered
-#' * `last` : return the last mode value encountered
-#' * `random` : return a randomly selected mode value
-#'
-#' @return mode(s) of `values`
-#'
-#' @export mode
-#' @export
-mode <- function(values, break.ties="all", seed=2022){
-  vt <- sort(table(values), decreasing=TRUE)
-  vmax <- max(vt, na.rm=TRUE)
-  modes <- names(vt)[which(vt == vmax)]
-  if(break.ties == "all"){
-    return(modes)
-  }else if(break.ties == "first"){
-    return(head(modes, 1))
-  }else if(break.ties == "last"){
-    return(tail(modes, 1))
-  }else if(break.ties == "random"){
-    set.seed(seed)
-    return(sample(modes, 1))
-  }
-}
-
-
 #' Chi-square power
 #'
 #' Calculate the power of a 2x2 Chi-square test given a known sample size and prespecified effect odds ratio
@@ -71,35 +36,20 @@ chisq.power.from.or <- function(N, P, OR){
 }
 
 
-#' Define Outlier Values
+#' Dynamic range
 #'
-#' Define outlier observations from a numeric vector using the standard
-#' Q1/Q3 + N*IQR approach
+#' Calculate the dynamic range of a numeric vector; that is, the ratio of the
+#' maximum to minimum non-NA values in the vector
 #'
 #' @param values Vector of numeric values
-#' @param n.iqr Multiple of IQRs beyond which a point will be treated
-#' as an outlier \[default: 3\]
-#' @param fixed.min Optional. If specified, will override the lower bound below
-#' which observations will be treated as outliers.
-#' @param fixed.min Optional. If specified, will override the upper bound below
-#' which observations will be treated as outliers.
 #'
-#' @return Logical vector of outlier assignments for each element in `values`
+#' @returns numeric ratio of max / min
 #'
-#' @export label.outliers
+#' @export dynamic.range
 #' @export
-label.outliers <- function(values, n.iqr=3, fixed.min=NULL, fixed.max=NULL){
+dynamic.range <- function(values){
   values <- as.numeric(values)
-  v.iqr <- IQR(values, na.rm=T)
-  v.q1q3 <- quantile(values, probs=c(0.25, 0.75), na.rm=T)
-  v.out.bounds <- v.q1q3 + c(n.iqr * c(-1, 1) * v.iqr)
-  if(!is.null(fixed.min)){
-    v.out.bounds[1] <- as.numeric(fixed.min)
-  }
-  if(!is.null(fixed.max)){
-    v.out.bounds[2] <- as.numeric(fixed.max)
-  }
-  (values < v.out.bounds[1] | values > v.out.bounds[2])
+  max(values, na.rm=T) / min(values, na.rm=T)
 }
 
 
@@ -154,6 +104,73 @@ ivw.meta <- function(estimates, vars, conf=0.95){
 is.inside <- function(pos, interval){
   pos <- as.numeric(pos)
   pos >= min(interval, na.rm=T) & pos <= max(interval, na.rm=T)
+}
+
+
+#' Define Outlier Values
+#'
+#' Define outlier observations from a numeric vector using the standard
+#' Q1/Q3 + N*IQR approach
+#'
+#' @param values Vector of numeric values
+#' @param n.iqr Multiple of IQRs beyond which a point will be treated
+#' as an outlier \[default: 3\]
+#' @param fixed.min Optional. If specified, will override the lower bound below
+#' which observations will be treated as outliers.
+#' @param fixed.min Optional. If specified, will override the upper bound below
+#' which observations will be treated as outliers.
+#'
+#' @return Logical vector of outlier assignments for each element in `values`
+#'
+#' @export label.outliers
+#' @export
+label.outliers <- function(values, n.iqr=3, fixed.min=NULL, fixed.max=NULL){
+  values <- as.numeric(values)
+  v.iqr <- IQR(values, na.rm=T)
+  v.q1q3 <- quantile(values, probs=c(0.25, 0.75), na.rm=T)
+  v.out.bounds <- v.q1q3 + c(n.iqr * c(-1, 1) * v.iqr)
+  if(!is.null(fixed.min)){
+    v.out.bounds[1] <- as.numeric(fixed.min)
+  }
+  if(!is.null(fixed.max)){
+    v.out.bounds[2] <- as.numeric(fixed.max)
+  }
+  (values < v.out.bounds[1] | values > v.out.bounds[2])
+}
+
+
+#' Arithmetic mode
+#'
+#' Compute the arithmetic mode of a vector
+#'
+#' @param values Vector of values
+#' @param break.ties Specify how ties should be broken. See `Details`. \[default: "all"\]
+#' @param seed Random seed to break ties, if needed. \[default: 2022\]
+#'
+#' @details Recognized values for `break.ties` include:
+#' * `all` : return all tied modes
+#' * `first` : return the first mode value encountered
+#' * `last` : return the last mode value encountered
+#' * `random` : return a randomly selected mode value
+#'
+#' @return mode(s) of `values`
+#'
+#' @export mode
+#' @export
+mode <- function(values, break.ties="all", seed=2022){
+  vt <- sort(table(values), decreasing=TRUE)
+  vmax <- max(vt, na.rm=TRUE)
+  modes <- names(vt)[which(vt == vmax)]
+  if(break.ties == "all"){
+    return(modes)
+  }else if(break.ties == "first"){
+    return(head(modes, 1))
+  }else if(break.ties == "last"){
+    return(tail(modes, 1))
+  }else if(break.ties == "random"){
+    set.seed(seed)
+    return(sample(modes, 1))
+  }
 }
 
 
