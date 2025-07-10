@@ -33,3 +33,41 @@ calc.hwe.xy <- function(f.het, f.hom){
   y <- sin(60 * pi / 180) * f.het
   c(x, y)
 }
+
+
+#' Simulate genotypes
+#'
+#' Simulate a vector of biallelic genotypes according to Hardy-Weinberg Equilibrium
+#'
+#' @param af Minor allele frequency
+#' @param n Number of genotypes to simulate
+#' @param seed Optional random seed
+#' @param return.dosage Return integer allele dosages \[default: FALSE\]
+#'
+#' @returns Either a character vector of simulated VCF-style genotypes or a
+#' numeric vector of allele dosages, depending on `return.dosage`
+#'
+#' @export simulate.gts
+#' @export
+simulate.gts <- function(af, n, seed=NULL, return.dosage=FALSE){
+  # Convert AF into classical HWE terms
+  af <- as.numeric(af)
+  p <- af
+  q <- 1 - af
+
+  # Genotype probabilities
+  p.hom <- p^2
+  p.het <- 2*p*q
+  p.ref <- q^2
+
+  # Sample genotypes
+  if(!is.null(seed)){
+    set.seed(seed)
+  }
+  if(return.dosage){
+    sample(0:2, n, replace=TRUE, prob=c(p.ref, p.het, p.hom))
+  }else{
+    sample(c("0/0", "0/1", "1/1"), n, replace=TRUE, prob=c(p.ref, p.het, p.hom))
+  }
+}
+
