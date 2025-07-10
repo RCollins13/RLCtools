@@ -12,6 +12,37 @@
 # Plotting helper functions
 
 
+#' Order plot quadrants by density
+#'
+#' Order Euclidean quadrants in a scatterplot based on the number of points in each
+#'
+#' @param x Numeric vector of scatterplot x values
+#' @param y Numeric vector of scatterplot y values
+#' @param decreasing Order quadrants by most to least dense \[default: FALSE\]
+#'
+#' @returns Character vector of ordered plot quadrant names
+#'
+#' @details Uses standard Euclidean notation for quadrant names
+#' \(e.g., "I" = top right; "IV" = bottom right\)
+#'
+#' @export calc.plot.quadrant.density
+#' @export
+calc.plot.quadrant.density <- function(x, y, decreasing=FALSE){
+  # Normalize points relative to axis midpoints
+  xnorm <- x / mean(par("usr")[1:2])
+  ynorm <- y / mean(par("usr")[3:4])
+
+  # Tally points per quadrant
+  quad.k <- c("I" = sum(xnorm >= 1 & ynorm >= 1),
+              "II" = sum(xnorm < 1 & ynorm >= 1),
+              "III" = sum(xnorm < 1 & ynorm < 1),
+              "IV" = sum(xnorm >= 1 & ynorm < 1))
+
+  # Return sorted vector of quadrants by density
+  names(sort(quad.k, decreasing=decreasing))
+}
+
+
 #' Prepare Plot Area
 #'
 #' Prepare a standardized & formatted plot area
