@@ -504,13 +504,18 @@ categorical.rainbow <- function(n, hue.range=c(0, 1), saturation.range=c(0.5, 0.
 #' @param n Number of colors in palette
 #' @param oscillate Should colors be interleaved to maximize contrast?
 #' \[default: `FALSE`, which provides a sequential greyscale palette\]
+#' @param buffer Number of palette steps to buffer at the start and end
+#' of the palette \[default: 1\]
 #'
 #' @returns Character vector of hex colors
 #'
 #' @export greyscale.palette
 #' @export
-greyscale.palette <- function(n, oscillate=FALSE){
-  pal <- colorRampPalette(c("black", "white"))(n + 2)[-c(1, n + 2)]
+greyscale.palette <- function(n, oscillate=FALSE, buffer=1){
+  pal.full <- colorRampPalette(c("black", "white"))(n + (2*buffer))
+  lb.range <- if(buffer==0){c()}else if(buffer>1){1:buffer}else{1}
+  rb.range <- if(buffer==0){NULL}else if(buffer>1){seq(n+buffer+1, n+(2*buffer))}else{n+2}
+  pal <- if(buffer>0){pal.full[-c(lb.range, rb.range)]}else{pal.full}
   if(oscillate){
     split.idx <- ceiling(n / 2)
     return(pal[interleave(1:split.idx, n:(split.idx+1))])

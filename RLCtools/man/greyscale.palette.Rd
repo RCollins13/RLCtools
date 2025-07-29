@@ -4,13 +4,16 @@
 \alias{greyscale.palette}
 \title{Greyscale palette}
 \usage{
-greyscale.palette(n, oscillate = FALSE)
+greyscale.palette(n, oscillate = FALSE, buffer = 1)
 }
 \arguments{
 \item{n}{Number of colors in palette}
 
 \item{oscillate}{Should colors be interleaved to maximize contrast?
 [default: \code{FALSE}, which provides a sequential greyscale palette]}
+
+\item{buffer}{Number of palette steps to buffer at the start and end
+of the palette [default: 1]}
 }
 \value{
 Character vector of hex colors
