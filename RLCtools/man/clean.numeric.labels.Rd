@@ -9,6 +9,7 @@ clean.numeric.labels(
   suffix.delim = "",
   acceptable.decimals = 0,
   min.label.length = 1,
+  respect.original.vals = FALSE,
   return.rounded.vals = FALSE
 )
 }
@@ -24,6 +25,11 @@ before jumping to a greater log suffix [default: 0]}
 \item{min.label.length}{Minimum total count of digits to include in each
 label; labels shorter than this length will have their decimal places expanded
 [default: 1]}
+
+\item{respect.original.vals}{Should the exact length of \code{vals} be respected,
+with no values being collapsed when they round to the same significant digit?
+[default: FALSE, that is: values that round to the same significant digit
+will be deduplicated]}
 
 \item{return.rounded.vals}{Should the exact rounded numeric values also
 be returned? [default: FALSE]}

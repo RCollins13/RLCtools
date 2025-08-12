@@ -1109,7 +1109,13 @@ density.w.outliers <- function(vals, style="density", min.complexity=30, bw.adj=
     n.breaks <- length(v.dens$breaks)
     rect(xleft=v.dens$breaks[-n.breaks], xright=v.dens$breaks[-1],
          ybottom=rep(0, length=n.breaks-1), ytop=v.dens$counts,
-         col=color, border=border, xpd=T)
+         col=color, border=color, xpd=T)
+    hist.outline <- step.function(x=v.dens$mids, y=v.dens$counts)
+    segments(x0=hist.outline$x[-length(hist.outline$x)],
+             x1=hist.outline$x[-c(1)],
+             y0=hist.outline$y[-length(hist.outline$y)],
+             y1=hist.outline$y[-c(1)],
+             col=border, xpd=T)
   }else{
     polygon(x=c(v.dens$x, rev(v.dens$x)),
             y=c(v.dens$y, rep(0, length(v.dens$x))),
@@ -1273,7 +1279,7 @@ stacked.barplot <- function(major.values, minor.values=NULL, colors=NULL,
 
   # Handle color assignment
   if(is.null(colors)){
-    colors <- greyscale.palette(length(minor.table))
+    colors <- greyscale.palette(length(minor.table), mode="dfci")
     names(colors) <- names(minor.table)
   }
   if(is.null(inner.borders)){
@@ -1375,7 +1381,7 @@ stacked.barplot <- function(major.values, minor.values=NULL, colors=NULL,
   # Add major legend in margin, if optioned
   if(major.legend){
     if(is.null(major.legend.colors)){
-      major.legend.colors <- greyscale.palette(length(major.table))
+      major.legend.colors <- greyscale.palette(length(major.table), mode="dfci")
       names(major.legend.colors) <- rownames(plot.df)
     }
     if(orient == "left"){

@@ -11,6 +11,8 @@ clean.axis(
   labels.at = NULL,
   label.units = NULL,
   parse.labels = FALSE,
+  max.label.decimals = 0,
+  min.ticks = 3,
   max.ticks = 6,
   title = NULL,
   tck = -0.025,
@@ -39,6 +41,11 @@ and "count" for counts that will abbreviated with "k" for thousands and "M"
 for millions. Can be overridden by supplying \code{labels} directly.}
 
 \item{parse.labels}{Should \code{labels} be parsed as R expressions? [default: FALSE]}
+
+\item{max.label.decimals}{Value of \code{acceptable.decimals} passed to
+\code{\link[=clean.numeric.labels]{clean.numeric.labels()}} [default: 0]}
+
+\item{min.ticks}{Maximum number of axis ticks. Will be overridden by \code{at} [default: 3]}
 
 \item{max.ticks}{Maximum number of axis ticks. Will be overridden by \code{at} [default: 6]}
 

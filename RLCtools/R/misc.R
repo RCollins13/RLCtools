@@ -14,18 +14,37 @@
 
 #' Stretch Vector
 #'
-#' Expand the length of a vector by repeating (or "stuttering") values
+#' Expand the length of a vector by either interoperating missing or
+#' repeating/"stuttering" values
 #'
 #' @param values Vector of values to be stretched
-#' @param k Number of times to duplicate each element in `values`
+#' @param k Length expansion coefficient for `values`
+#' @param how Specify how vector should be stretched. Options are "interpolate"
+#' or "stutter". \[default: "stutter"\]
 #'
 #' @examples
 #' stretch.vector(values=c(1, 2, 3), k=4)
 #'
+#' @details
+#' Specifying `k=1` will return the original vector of `values` with no expansion.
+#' Each additional increment of `k` beyond 1 corresponds to an additional value
+#' being interspersed between each original element of `values`
+#'
 #' @export stretch.vector
 #' @export
-stretch.vector <- function(values, k){
-  as.vector(sapply(values, rep, times=k))
+stretch.vector <- function(values, k, how="stutter"){
+  if(!how %in% c("stutter", "interpolate")){
+    stop(paste("Unrecognized value of `how` provided to stretch.vector().",
+               "Eligible options are \"interpolate\" and \"stutter\"."))
+  }
+  if(how == "stutter"){
+    as.vector(sapply(values, rep, times=k))
+  }else if(how == "interpolate"){
+    c(as.vector(unlist(sapply(1:(length(values)-1), function(left.idx){
+      seq(values[left.idx], values[left.idx+1], length.out=k+1)[-(k+1)]
+    }))),
+    values[length(values)])
+  }
 }
 
 
@@ -147,6 +166,10 @@ remap <- function(x, map, default.value=NULL){
 #' @param min.label.length Minimum total count of digits to include in each
 #' label; labels shorter than this length will have their decimal places expanded
 #' \[default: 1\]
+#' @param respect.original.vals Should the exact length of `vals` be respected,
+#' with no values being collapsed when they round to the same significant digit?
+#' \[default: FALSE, that is: values that round to the same significant digit
+#' will be deduplicated\]
 #' @param return.rounded.vals Should the exact rounded numeric values also
 #' be returned? \[default: FALSE\]
 #'
@@ -167,7 +190,8 @@ remap <- function(x, map, default.value=NULL){
 #' @export clean.numeric.labels
 #' @export
 clean.numeric.labels <- function(vals, suffix.delim="", acceptable.decimals=0,
-                                 min.label.length=1, return.rounded.vals=FALSE){
+                                 min.label.length=1, respect.original.vals=FALSE,
+                                 return.rounded.vals=FALSE){
   vals <- as.numeric(vals)
   lab.logs <- floor(log10(vals))
   raw.best <- length(which(lab.logs < 3-acceptable.decimals))
@@ -175,7 +199,7 @@ clean.numeric.labels <- function(vals, suffix.delim="", acceptable.decimals=0,
   M.best <- length(which(lab.logs >= 6-acceptable.decimals & lab.logs < 9-acceptable.decimals))
   B.best <- length(which(lab.logs >= 9-acceptable.decimals & lab.logs < 12-acceptable.decimals))
   T.best <- length(which(lab.logs > 11-acceptable.decimals))
-  if(sum(T.best, B.best, M.best, k.best) > 0){
+  if(any(c(T.best, B.best, M.best, k.best) > raw.best)){
     if(T.best > 0){
       scalar <- 10^12
       suffix <- "T"
@@ -208,10 +232,19 @@ clean.numeric.labels <- function(vals, suffix.delim="", acceptable.decimals=0,
     at <- sort(scalar * as.numeric(unique(roundeds)))
     labels <- prettyNum(roundeds, big.mark=",")
     labels <- paste(labels, suffix, sep=suffix.delim)
+    labels[which(labels == paste(0, suffix, sep=suffix.delim))] <- "0"
   }else{
     at <- vals
     labels <- prettyNum(at, big.mark=",")
   }
+
+  # In order to enforce respect.original.vals, we recursively check the output
+  # length and increase acceptable.decimals until consistency is reached
+  if(respect.original.vals & length(at) != length(vals)){
+    clean.numeric.labels(vals, suffix.delim, acceptable.decimals=acceptable.decimals+1,
+                         min.label.length, respect.original.vals, return.rounded.vals)
+  }
+
   if(return.rounded.vals){
     return(list("labels" = labels, "values" = at))
   }else{

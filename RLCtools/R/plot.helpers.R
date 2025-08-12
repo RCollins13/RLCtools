@@ -79,6 +79,9 @@ prep.plot.area <- function(xlims, ylims, parmar, xaxs="i", yaxs="i"){
 #' and "count" for counts that will abbreviated with "k" for thousands and "M"
 #' for millions. Can be overridden by supplying `labels` directly.
 #' @param parse.labels Should `labels` be parsed as R expressions? \[default: FALSE\]
+#' @param max.label.decimals Value of `acceptable.decimals` passed to
+#' [RLCtools::clean.numeric.labels()] \[default: 0\]
+#' @param min.ticks Maximum number of axis ticks. Will be overridden by `at` \[default: 3\]
 #' @param max.ticks Maximum number of axis ticks. Will be overridden by `at` \[default: 6\]
 #' @param title Axis title
 #' @param tck Value passed to `axis()`. See `?axis` for details. \[default: -0.025\]
@@ -98,7 +101,8 @@ prep.plot.area <- function(xlims, ylims, parmar, xaxs="i", yaxs="i"){
 #' @export clean.axis
 #' @export
 clean.axis <- function(side, at=NULL, labels=NULL, labels.at=NULL, label.units=NULL,
-                       parse.labels=FALSE, max.ticks=6, title=NULL, tck=-0.025,
+                       parse.labels=FALSE, max.label.decimals=0,
+                       min.ticks=3, max.ticks=6, title=NULL, tck=-0.025,
                        cex.axis=5/6, line=0, label.line=-0.65, cex.title=1, title.line=0.5,
                        infinite=FALSE, infinite.positive=FALSE, infinite.negative=FALSE){
   if(infinite){axis(side, at=c(-10e10, 10e10), tck=0, labels=NA, line=line)}
@@ -106,6 +110,9 @@ clean.axis <- function(side, at=NULL, labels=NULL, labels.at=NULL, label.units=N
     at <- axTicks(side)
     if(length(at) > max.ticks){
       at <- at[c(TRUE, FALSE)]
+    }
+    if(length(at) < min.ticks){
+      at <- stretch.vector(at, k=2, how="interpolate")
     }
   }
   if(infinite.positive){axis(side, at=c(at[1], 10e10), tck=0, labels=NA)}
@@ -117,7 +124,10 @@ clean.axis <- function(side, at=NULL, labels=NULL, labels.at=NULL, label.units=N
         labels <- paste(100 * labels, "%", sep="")
       }
       if(label.units == "count"){
-        label.info <- clean.numeric.labels(labels, return.rounded.vals=TRUE)
+        label.info <- clean.numeric.labels(labels,
+                                           acceptable.decimals=max.label.decimals,
+                                           return.rounded.vals=TRUE,
+                                           respect.original.vals=TRUE)
         at <- as.numeric(label.info$values)
         labels <- label.info$labels
       }
@@ -506,13 +516,21 @@ categorical.rainbow <- function(n, hue.range=c(0, 1), saturation.range=c(0.5, 0.
 #' \[default: `FALSE`, which provides a sequential greyscale palette\]
 #' @param buffer Number of palette steps to buffer at the start and end
 #' of the palette \[default: 1\]
+#' @param mode Designate hue option for palette. Options are "grey" \(default\)
+#' or "dfci" \(aligned to DFCI dark blue\)
 #'
 #' @returns Character vector of hex colors
 #'
 #' @export greyscale.palette
 #' @export
-greyscale.palette <- function(n, oscillate=FALSE, buffer=1){
-  pal.full <- colorRampPalette(c("black", "white"))(n + (2*buffer))
+greyscale.palette <- function(n, oscillate=FALSE, buffer=1, mode="grey"){
+  if(mode == "dfci"){
+    # Hues for this palette are taken from 1:2 blend of PMS 3015 + grey50
+    # See: https://dfci.widen.net/s/mrqqjjpp76/dfci_brandstandards
+    pal.full <- colorRampPalette(c("black", "#5F7886", "white"))(n + (2*buffer))
+  }else{
+    pal.full <- colorRampPalette(c("black", "white"))(n + (2*buffer))
+  }
   lb.range <- if(buffer==0){c()}else if(buffer>1){1:buffer}else{1}
   rb.range <- if(buffer==0){NULL}else if(buffer>1){seq(n+buffer+1, n+(2*buffer))}else{n+2}
   pal <- if(buffer>0){pal.full[-c(lb.range, rb.range)]}else{pal.full}

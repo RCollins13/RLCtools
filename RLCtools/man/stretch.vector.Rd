@@ -4,15 +4,24 @@
 \alias{stretch.vector}
 \title{Stretch Vector}
 \usage{
-stretch.vector(values, k)
+stretch.vector(values, k, how = "stutter")
 }
 \arguments{
 \item{values}{Vector of values to be stretched}
 
-\item{k}{Number of times to duplicate each element in \code{values}}
+\item{k}{Length expansion coefficient for \code{values}}
+
+\item{how}{Specify how vector should be stretched. Options are "interpolate"
+or "stutter". [default: "stutter"]}
 }
 \description{
-Expand the length of a vector by repeating (or "stuttering") values
+Expand the length of a vector by either interoperating missing or
+repeating/"stuttering" values
+}
+\details{
+Specifying \code{k=1} will return the original vector of \code{values} with no expansion.
+Each additional increment of \code{k} beyond 1 corresponds to an additional value
+being interspersed between each original element of \code{values}
 }
 \examples{
 stretch.vector(values=c(1, 2, 3), k=4)

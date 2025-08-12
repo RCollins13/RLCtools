@@ -4,7 +4,7 @@
 \alias{greyscale.palette}
 \title{Greyscale palette}
 \usage{
-greyscale.palette(n, oscillate = FALSE, buffer = 1)
+greyscale.palette(n, oscillate = FALSE, buffer = 1, mode = "grey")
 }
 \arguments{
 \item{n}{Number of colors in palette}
@@ -14,6 +14,9 @@ greyscale.palette(n, oscillate = FALSE, buffer = 1)
 
 \item{buffer}{Number of palette steps to buffer at the start and end
 of the palette [default: 1]}
+
+\item{mode}{Designate hue option for palette. Options are "grey" \(default\)
+or "dfci" \(aligned to DFCI dark blue\)}
 }
 \value{
 Character vector of hex colors
