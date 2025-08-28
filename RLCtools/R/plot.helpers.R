@@ -711,3 +711,34 @@ step.function <- function(x, y, offset=0.5, interpolate=FALSE){
   list("x" = x.step, "y" = y.step)
 }
 
+
+#' Abbreviate text by width
+#'
+#' Abbreviate any string to constrain it within a prespecified width for plotting
+#'
+#' @param text Input text to be abbreviated
+#' @param width Maximum width for abbreviated label, in user units
+#' @param cex Value of `cex` for `text`
+#' @param font Value of `font` for `text`
+#'
+#' @seealso [graphics::strwidth()]
+#'
+#' @returns Abbreviated version of `text` that can be
+#'
+#' @export shorten.text
+#' @export
+shorten.text <- function(text, width=Inf, cex=1, font=1){
+  abbrevs <- unique(sapply(0:nchar(text), function(k){
+    if(k==0){
+      ""
+    }else if(k==nchar(text)){
+        text
+    }else{
+      ss <- gsub("[ ]+$", "", substr(text, 1, k))
+      gsub("[.]+", ".", paste(ss, ".", sep=""))
+      }
+  }))
+  abbrev.w <- sapply(abbrevs, strwidth, cex=cex, font=font)
+  abbrevs[max(c(1, which(abbrev.w <= width)))]
+}
+
