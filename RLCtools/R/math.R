@@ -49,7 +49,7 @@ chisq.power.from.or <- function(N, P, OR){
 #' @export
 dynamic.range <- function(values){
   values <- as.numeric(values)
-  max(values, na.rm=T) / min(values, na.rm=T)
+  max(c(max(values, na.rm=T) / min(values, na.rm=T), 1))
 }
 
 
