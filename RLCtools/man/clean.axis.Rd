@@ -11,6 +11,7 @@ clean.axis(
   labels.at = NULL,
   label.units = NULL,
   parse.labels = FALSE,
+  label.font = 1,
   max.label.decimals = 0,
   min.ticks = 3,
   max.ticks = 6,
@@ -41,6 +42,8 @@ and "count" for counts that will abbreviated with "k" for thousands and "M"
 for millions. Can be overridden by supplying \code{labels} directly.}
 
 \item{parse.labels}{Should \code{labels} be parsed as R expressions? [default: FALSE]}
+
+\item{label.font}{Value of \code{font} for labels [default: 1]}
 
 \item{max.label.decimals}{Value of \code{acceptable.decimals} passed to
 \code{\link[=clean.numeric.labels]{clean.numeric.labels()}} [default: 0]}

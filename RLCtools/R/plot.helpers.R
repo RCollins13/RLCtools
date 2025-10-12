@@ -79,6 +79,7 @@ prep.plot.area <- function(xlims, ylims, parmar, xaxs="i", yaxs="i"){
 #' and "count" for counts that will abbreviated with "k" for thousands and "M"
 #' for millions. Can be overridden by supplying `labels` directly.
 #' @param parse.labels Should `labels` be parsed as R expressions? \[default: FALSE\]
+#' @param label.font Value of `font` for labels \[default: 1\]
 #' @param max.label.decimals Value of `acceptable.decimals` passed to
 #' [RLCtools::clean.numeric.labels()] \[default: 0\]
 #' @param min.ticks Maximum number of axis ticks. Will be overridden by `at` \[default: 3\]
@@ -101,7 +102,7 @@ prep.plot.area <- function(xlims, ylims, parmar, xaxs="i", yaxs="i"){
 #' @export clean.axis
 #' @export
 clean.axis <- function(side, at=NULL, labels=NULL, labels.at=NULL, label.units=NULL,
-                       parse.labels=FALSE, max.label.decimals=0,
+                       parse.labels=FALSE, label.font=1, max.label.decimals=0,
                        min.ticks=3, max.ticks=6, title=NULL, tck=-0.025,
                        cex.axis=5/6, line=0, label.line=-0.65, cex.title=1, title.line=0.5,
                        infinite=FALSE, infinite.positive=FALSE, infinite.negative=FALSE){
@@ -154,7 +155,7 @@ clean.axis <- function(side, at=NULL, labels=NULL, labels.at=NULL, label.units=N
       label <- labels[i]
     }
     axis(side, at=labels.at[i], labels=label, tick=F, cex.axis=cex.axis,
-         las=las, line=line+label.line)
+         las=las, line=line+label.line, font=label.font)
   })
   if(!is.null(title)){
     axis(side, at=title.at, tick=F, labels=title, line=line+title.line,
@@ -720,25 +721,105 @@ step.function <- function(x, y, offset=0.5, interpolate=FALSE){
 #' @param width Maximum width for abbreviated label, in user units
 #' @param cex Value of `cex` for `text`
 #' @param font Value of `font` for `text`
+#' @param orientation Orientation of text (see `Details`)
 #'
 #' @seealso [graphics::strwidth()]
 #'
-#' @returns Abbreviated version of `text` that can be
+#' @returns Abbreviated version of `text` that can fit within `width`
+#'
+#' @details Text orientation can be specified two ways: "horizontal" or "vertical"
 #'
 #' @export shorten.text
 #' @export
-shorten.text <- function(text, width=Inf, cex=1, font=1){
+shorten.text <- function(text, width=Inf, cex=1, font=1, orientation="horizontal"){
+  if(!(orientation %in% c("horizontal", "vertical"))){
+    stop("Value of `orientation` passed to RLCTools::shorten.text() not recognized")
+  }
   abbrevs <- unique(sapply(0:nchar(text), function(k){
     if(k==0){
       ""
     }else if(k==nchar(text)){
-        text
+      text
     }else{
       ss <- gsub("[ ]+$", "", substr(text, 1, k))
       gsub("[.]+", ".", paste(ss, ".", sep=""))
-      }
+    }
   }))
+  # Transform units based on value of `orientation`
+  if(orientation == "vertical" & !is.infinite(width)){
+    width <- width / DescTools::Asp()
+  }
   abbrev.w <- sapply(abbrevs, strwidth, cex=cex, font=font)
-  abbrevs[max(c(1, which(abbrev.w <= width)))]
+  abbrevs[max(c(1, which(abbrev.w <= abs(width))))]
 }
 
+
+#' Density-based topographic heatmap
+#'
+#' Transform (x, y) value pairs into a 2D topographic heatmap, with optional contour lines
+#'
+#' @param x Point values on X axis
+#' @param y Point values on Y axis; must match X
+#' @param xlims Custom range of values to evaluate on X axis
+#' @param ylims Custom range of values to evaluate on Y axis
+#' @param res Resolution of (X, Y) grid
+#' @param palete.fxn Function to generate colors (see `Details`)
+#' @param ncol Number of colors generated using `palette.fxn()`
+#' @param add Should the heatmap be added to the existing plot device? \[default: TRUE\]
+#' @param contours Should step contours be superimposed? \[default: TRUE\]
+#' @param contour.col Color of contour lines \[default: "white"\]
+#' @param contour.lwd Width of contour lines \[default: 0.5\]
+#' @param contour.levels Value of `nlevels` passed to [graphics::contour()]
+#' @param retry.with.jitter Fault tolerance (see details) \[default: TRUE\]
+#'
+#' @details `palette.fxn` must accept a single integer value as input and return
+#' a vector of colors of length equal to integer input (see [viridis::viridis()])
+#'
+#' When `x` and/or `y` have extremely low (near-zero) variance, [MASS::kde2d()]
+#' can fail to estimate density due to bandwidths of zero. When `retry.with.jitter`
+#' is `TRUE`, density estimation will be automatically retried with `x` and `y`
+#' values artificially noised by [jitter()] with default parameters. This seems
+#' to usually solve the [MASS::kde2d()] issue and results in a reasonably close
+#' facimile of the true density.
+#'
+#' @seealso [MASS::kde2d()], [graphics::image()], [graphics::contour()]
+#'
+#' @export density.topomap
+#' @export
+density.topomap <- function(x, y, xlims=NULL, ylims=NULL, res=200,
+                            palette.fxn=viridis::mako, ncol=96, add=TRUE,
+                            contours=TRUE, contour.col="white", contour.lwd=0.5,
+                            contour.levels=NULL, retry.with.jitter=TRUE){
+  require(MASS, quietly=TRUE)
+  if(is.null(xlims)){
+    no.xlims <- TRUE
+    xlims <- range(x, na.rm=T)
+  }else{
+    no.xlims <- FALSE
+  }
+  if(is.null(ylims)){
+    no.ylims <- TRUE
+    ylims <- range(y, na.rm=T)
+  }else{
+    no.ylims <- FALSE
+  }
+  tryCatch(dens <- kde2d(x, y, n=res, lims=c(xlims, ylims)),
+           error=function(e){
+             set.seed(2025)
+             x <- jitter(x)
+             y <- jitter(y)
+             if(no.xlims){xlims <- range(x, na.rm=T)}
+             if(no.ylims){ylims <- range(y, na.rm=T)}
+             dens <- kde2d(jitter(x), jitter(y), n=res, lims=c(xlims, ylims))
+           })
+  image(dens, col=palette.fxn(ncol), add=add, useRaster=TRUE)
+  if(contours){
+    if(!is.null(contour.levels)){
+      levels <- seq(min(dens$z), max(dens$z), length.out=contour.levels+1)
+      contour(dens, add=TRUE, drawlabels=FALSE, col=contour.col, lwd=contour.lwd,
+              levels=levels)
+    }else{
+      contour(dens, add=TRUE, drawlabels=FALSE, col=contour.col, lwd=contour.lwd)
+    }
+  }
+}

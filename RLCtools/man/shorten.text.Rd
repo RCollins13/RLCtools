@@ -4,7 +4,7 @@
 \alias{shorten.text}
 \title{Abbreviate text by width}
 \usage{
-shorten.text(text, width = Inf, cex = 1, font = 1)
+shorten.text(text, width = Inf, cex = 1, font = 1, orientation = "horizontal")
 }
 \arguments{
 \item{text}{Input text to be abbreviated}
@@ -14,12 +14,17 @@ shorten.text(text, width = Inf, cex = 1, font = 1)
 \item{cex}{Value of \code{cex} for \code{text}}
 
 \item{font}{Value of \code{font} for \code{text}}
+
+\item{orientation}{Orientation of text (see \code{Details})}
 }
 \value{
-Abbreviated version of \code{text} that can be
+Abbreviated version of \code{text} that can fit within \code{width}
 }
 \description{
 Abbreviate any string to constrain it within a prespecified width for plotting
+}
+\details{
+Text orientation can be specified two ways: "horizontal" or "vertical"
 }
 \seealso{
 \code{\link[graphics:strwidth]{graphics::strwidth()}}
