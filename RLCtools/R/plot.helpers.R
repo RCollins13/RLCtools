@@ -82,6 +82,8 @@ prep.plot.area <- function(xlims, ylims, parmar, xaxs="i", yaxs="i"){
 #' @param label.font Value of `font` for labels \[default: 1\]
 #' @param max.label.decimals Value of `acceptable.decimals` passed to
 #' [RLCtools::clean.numeric.labels()] \[default: 0\]
+#' @param min.label.length Value of `min.label.length` passed to
+#' [RLCtools::clean.numeric.labels()] \[default: 1\]
 #' @param min.ticks Maximum number of axis ticks. Will be overridden by `at` \[default: 3\]
 #' @param max.ticks Maximum number of axis ticks. Will be overridden by `at` \[default: 6\]
 #' @param title Axis title
@@ -103,9 +105,10 @@ prep.plot.area <- function(xlims, ylims, parmar, xaxs="i", yaxs="i"){
 #' @export
 clean.axis <- function(side, at=NULL, labels=NULL, labels.at=NULL, label.units=NULL,
                        parse.labels=FALSE, label.font=1, max.label.decimals=0,
-                       min.ticks=3, max.ticks=6, title=NULL, tck=-0.025,
-                       cex.axis=5/6, line=0, label.line=-0.65, cex.title=1, title.line=0.5,
-                       infinite=FALSE, infinite.positive=FALSE, infinite.negative=FALSE){
+                       min.label.length=1, min.ticks=3, max.ticks=6, title=NULL,
+                       tck=-0.025, cex.axis=5/6, line=0, label.line=-0.65,
+                       cex.title=1, title.line=0.5, infinite=FALSE,
+                       infinite.positive=FALSE, infinite.negative=FALSE){
   if(infinite){axis(side, at=c(-10e10, 10e10), tck=0, labels=NA, line=line)}
   if(is.null(at)){
     at <- axTicks(side)
@@ -127,6 +130,7 @@ clean.axis <- function(side, at=NULL, labels=NULL, labels.at=NULL, label.units=N
       if(label.units == "count"){
         label.info <- clean.numeric.labels(labels,
                                            acceptable.decimals=max.label.decimals,
+                                           min.label.length=min.label.length,
                                            return.rounded.vals=TRUE,
                                            respect.original.vals=TRUE)
         at <- as.numeric(label.info$values)

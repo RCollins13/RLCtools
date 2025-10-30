@@ -23,6 +23,7 @@
   x.title.line = 0.5,
   x.label.units = NULL,
   max.x.ticks = 6,
+  min.x.label.length = 1,
   add.y.axis = TRUE,
   y.title = NULL,
   y.title.line = 0.5,
@@ -74,6 +75,9 @@ as an outlier [default: Q3 + 3*IQR]}
 \item{x.label.units}{Units for X-axis labels; passed to \code{\link[=clean.axis]{clean.axis()}}}
 
 \item{max.x.ticks}{Maximum number of ticks for X-axis [default: 5]}
+
+\item{min.x.label.length}{Value of \code{min.label.length} passed to
+\code{\link[=clean.numeric.labels]{clean.numeric.labels()}} for the X-axis [default: 1]}
 
 \item{add.y.axis}{Should a Y-axis be plotted? [default: TRUE]}
 

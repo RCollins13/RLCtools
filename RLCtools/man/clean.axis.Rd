@@ -13,6 +13,7 @@ clean.axis(
   parse.labels = FALSE,
   label.font = 1,
   max.label.decimals = 0,
+  min.label.length = 1,
   min.ticks = 3,
   max.ticks = 6,
   title = NULL,
@@ -47,6 +48,9 @@ for millions. Can be overridden by supplying \code{labels} directly.}
 
 \item{max.label.decimals}{Value of \code{acceptable.decimals} passed to
 \code{\link[=clean.numeric.labels]{clean.numeric.labels()}} [default: 0]}
+
+\item{min.label.length}{Value of \code{min.label.length} passed to
+\code{\link[=clean.numeric.labels]{clean.numeric.labels()}} [default: 1]}
 
 \item{min.ticks}{Maximum number of axis ticks. Will be overridden by \code{at} [default: 3]}
 

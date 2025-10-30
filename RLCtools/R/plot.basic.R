@@ -1020,6 +1020,8 @@ km.curve <- function(surv.models, colors, group.names=NULL, km.lwd=3, ci.alpha=0
 #' @param x.title.line Line for `x.title` \[default: 0.5\]
 #' @param x.label.units Units for X-axis labels; passed to [RLCtools::clean.axis()]
 #' @param max.x.ticks Maximum number of ticks for X-axis \[default: 5\]
+#' @param min.x.label.length Value of `min.label.length` passed to
+#' [RLCtools::clean.numeric.labels()] for the X-axis \[default: 1\]
 #' @param add.y.axis Should a Y-axis be plotted? \[default: TRUE\]
 #' @param y.title Title for Y-axis \[default: no title\]
 #' @param y.title.line Line for `y.title` \[default: 0.5\]
@@ -1040,7 +1042,8 @@ density.w.outliers <- function(vals, style="density", min.complexity=30, bw.adj=
                                color="gray70", border="black", outlier.color=NULL,
                                title=NULL, title.line=0.1, xlims=NULL,
                                x.title=NULL, x.title.line=0.5, x.label.units=NULL,
-                               max.x.ticks=6, add.y.axis=TRUE, y.title=NULL,
+                               max.x.ticks=6, min.x.label.length=1,
+                               add.y.axis=TRUE, y.title=NULL,
                                y.title.line=0.5, outlier.lwd=1/3,
                                parmar=c(2, 2, 0.35, 0.35)){
   # Determine outlier points
@@ -1123,7 +1126,8 @@ density.w.outliers <- function(vals, style="density", min.complexity=30, bw.adj=
   }
 
   # Add axes & title
-  clean.axis(1, title=x.title, title.line=x.title.line, max.ticks=max.x.ticks,
+  clean.axis(1, title=x.title, title.line=x.title.line,
+             min.label.length=min.x.label.length, max.ticks=max.x.ticks,
              label.units=x.label.units, infinite=TRUE, label.line=-0.9)
   if(add.y.axis){
     clean.axis(2, label.units=y.title, title=y.title,
