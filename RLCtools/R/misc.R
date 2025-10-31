@@ -215,7 +215,13 @@ clean.numeric.labels <- function(vals, suffix.delim="", acceptable.decimals=0,
     }
     roundeds <- sapply(vals, function(v){
       full.r <- round(v / scalar, 16)
-      prelim <- round(v / scalar, acceptable.decimals)
+      prelim.pr <- round(v / scalar, acceptable.decimals)
+      if(nchar(prelim.pr) >= min.label.length){
+        prelim <- as.character(prelim.pr)
+      }else{
+        prelim <- format(round(v / scalar, min.label.length),
+                         nsmall=acceptable.decimals + (min.label.length-nchar(prelim.pr)))
+      }
       prelim.big <- unlist(strsplit(as.character(prelim), split=".", fixed=T))[1]
       n.prelim.big <- max(nchar(prelim.big), 0, na.rm=T)
       prelim.small <- unlist(strsplit(as.character(prelim), split=".", fixed=T))[2]
