@@ -106,7 +106,7 @@ impute.missing.values <- function(df, fill.missing="mean", fill.columns=NULL){
   }
 
   if(is.null(fill.columns)){
-    fill.columns <- colnames(df)[-1]
+    fill.columns <- colnames(df)
   }
   for(col in fill.columns){
     na.idxs <- which(is.na(df[, col]))
