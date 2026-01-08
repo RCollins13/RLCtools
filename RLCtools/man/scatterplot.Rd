@@ -12,10 +12,12 @@ scatterplot(
   x.label.line = NULL,
   x.title = NULL,
   x.title.line = 0.5,
+  x.axis.units = NULL,
   xlims = NULL,
   y.label.line = NULL,
   y.title = NULL,
   y.title.line = 0.5,
+  y.axis.units = NULL,
   ylims = NULL,
   legend.vals = NULL,
   legend.labels = NULL,
@@ -39,6 +41,8 @@ scatterplot(
 
 \item{x.title.line}{Line for X-axis title (\code{title.line} parameter for \link{clean.axis})}
 
+\item{x.axis.units}{Value of \code{label.units} passed to \link{clean.axis} for X axis labels}
+
 \item{xlims}{Limits for X-axis}
 
 \item{y.label.line}{Line for X-axis labels (\code{label.line} parameter for \link{clean.axis})}
@@ -46,6 +50,8 @@ scatterplot(
 \item{y.title}{Title for Y-axis}
 
 \item{y.title.line}{Line for axis titles (\code{title.line} parameter for \link{clean.axis})}
+
+\item{y.axis.units}{Value of \code{label.units} passed to \link{clean.axis} for Y axis labels}
 
 \item{ylims}{Limits for Y-axis}
 

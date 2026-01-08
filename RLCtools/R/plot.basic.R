@@ -24,10 +24,12 @@
 #' @param x.label.line Line for X-axis labels (`label.line` parameter for [RLCtools::clean.axis])
 #' @param x.title Title for X-axis
 #' @param x.title.line Line for X-axis title (`title.line` parameter for [RLCtools::clean.axis])
+#' @param x.axis.units Value of `label.units` passed to [RLCtools::clean.axis] for X axis labels
 #' @param xlims Limits for X-axis
 #' @param y.label.line Line for X-axis labels (`label.line` parameter for [RLCtools::clean.axis])
 #' @param y.title Title for Y-axis
 #' @param y.title.line Line for axis titles (`title.line` parameter for [RLCtools::clean.axis])
+#' @param y.axis.units Value of `label.units` passed to [RLCtools::clean.axis] for Y axis labels
 #' @param ylims Limits for Y-axis
 #' @param legend.vals Named vector mapping category names to colors \[default: NULL\]
 #' @param legend.labels Optional vector to overwrite names of `legend.vals`
@@ -41,8 +43,10 @@
 #' @export scatterplot
 #' @export
 scatterplot <- function(X, Y, colors=NULL, title=NULL,
-                        x.label.line=NULL, x.title=NULL, x.title.line=0.5, xlims=NULL,
-                        y.label.line=NULL, y.title=NULL, y.title.line=0.5, ylims=NULL,
+                        x.label.line=NULL, x.title=NULL, x.title.line=0.5,
+                        x.axis.units=NULL, xlims=NULL,
+                        y.label.line=NULL, y.title=NULL, y.title.line=0.5,
+                        y.axis.units=NULL, ylims=NULL,
                         legend.vals=NULL, legend.labels=NULL,
                         cex=0.3, add=FALSE, parmar=c(2.5, 2.5, 1, 1)){
   x <- as.numeric(X)
@@ -67,13 +71,15 @@ scatterplot <- function(X, Y, colors=NULL, title=NULL,
   if(is.null(x.title)){
     x.title <- "X value"
   }
-  clean.axis(1, title=x.title, infinite=T, label.line=x.label.line, title.line=x.title.line)
+  clean.axis(1, title=x.title, infinite=T, label.line=x.label.line,
+             title.line=x.title.line, label.units=x.axis.units)
 
   # Add Y-axis
   if(is.null(y.title)){
     y.title <- "Y value"
   }
-  clean.axis(2, title=y.title, infinite=T, label.line=y.label.line, title.line=y.title.line)
+  clean.axis(2, title=y.title, infinite=T, label.line=y.label.line,
+             title.line=y.title.line, label.units=y.axis.units)
 
   # Add points
   points(x, y, pch=19, cex=cex, col=colors, xpd=T)
