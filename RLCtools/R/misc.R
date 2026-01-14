@@ -220,7 +220,7 @@ clean.numeric.labels <- function(vals, suffix.delim="", acceptable.decimals=0,
         prelim <- as.character(prelim.pr)
       }else{
         prelim <- format(round(v / scalar, min.label.length),
-                         nsmall=acceptable.decimals + (min.label.length-nchar(prelim.pr)))
+                         nsmall=acceptable.decimals + (min.label.length-(nchar(prelim.pr)+1)))
       }
       prelim.big <- unlist(strsplit(as.character(prelim), split=".", fixed=T))[1]
       n.prelim.big <- max(nchar(prelim.big), 0, na.rm=T)
