@@ -807,6 +807,7 @@ density.topomap <- function(x, y, xlims=NULL, ylims=NULL, res=200,
   }else{
     no.ylims <- FALSE
   }
+  dens <- NULL
   tryCatch(dens <- kde2d(x, y, n=res, lims=c(xlims, ylims)),
            error=function(e){
              set.seed(2025)
@@ -816,14 +817,16 @@ density.topomap <- function(x, y, xlims=NULL, ylims=NULL, res=200,
              if(no.ylims){ylims <- range(y, na.rm=T)}
              dens <- kde2d(jitter(x), jitter(y), n=res, lims=c(xlims, ylims))
            })
-  image(dens, col=palette.fxn(ncol), add=add, useRaster=TRUE)
-  if(contours){
-    if(!is.null(contour.levels)){
-      levels <- seq(min(dens$z), max(dens$z), length.out=contour.levels+1)
-      contour(dens, add=TRUE, drawlabels=FALSE, col=contour.col, lwd=contour.lwd,
-              levels=levels)
-    }else{
-      contour(dens, add=TRUE, drawlabels=FALSE, col=contour.col, lwd=contour.lwd)
+  if(!is.null(dens)){
+    image(dens, col=palette.fxn(ncol), add=add, useRaster=TRUE)
+    if(contours){
+      if(!is.null(contour.levels)){
+        levels <- seq(min(dens$z), max(dens$z), length.out=contour.levels+1)
+        contour(dens, add=TRUE, drawlabels=FALSE, col=contour.col, lwd=contour.lwd,
+                levels=levels)
+      }else{
+        contour(dens, add=TRUE, drawlabels=FALSE, col=contour.col, lwd=contour.lwd)
+      }
     }
   }
 }
