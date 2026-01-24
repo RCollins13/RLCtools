@@ -162,10 +162,13 @@ remap <- function(x, map, default.value=NULL){
 #' @param suffix.delim Character delimiter (i.e., separator) between value and
 #' suffix \[default: no delimiter, ""\]
 #' @param acceptable.decimals Number of significant decimal digits to permit
-#' before jumping to a greater log suffix \[default: 0\]
+#' before jumping to a greater log suffix \[default: 1\]
 #' @param min.label.length Minimum total count of digits to include in each
 #' label; labels shorter than this length will have their decimal places expanded
 #' \[default: 1\]
+#' @param max.label.length Maximum total count of digits to include in each
+#' label; labels shorter than this length will have their decimal places truncated
+#' \[default: Infinite\]
 #' @param respect.original.vals Should the exact length of `vals` be respected,
 #' with no values being collapsed when they round to the same significant digit?
 #' \[default: FALSE, that is: values that round to the same significant digit
@@ -179,26 +182,30 @@ remap <- function(x, map, default.value=NULL){
 #'
 #' @examples
 #'
-#' vals <- 10^(0:6)
+#' vals <- 10^(2:5)
 #'
 #' # Standard invocation:
-#' clean.numeric.labels(vals)
+#' clean.numeric.labels(vals, acceptable.decimals=1)
 #'
 #' # Element-wise implementation
 #' sapply(vals, clean.numeric.labels)
 #'
 #' @export clean.numeric.labels
 #' @export
-clean.numeric.labels <- function(vals, suffix.delim="", acceptable.decimals=0,
-                                 min.label.length=1, respect.original.vals=FALSE,
+clean.numeric.labels <- function(vals, suffix.delim="", acceptable.decimals=1,
+                                 min.label.length=1, max.label.length=Inf,
+                                 respect.original.vals=FALSE,
                                  return.rounded.vals=FALSE){
+  if(max.label.length < min.label.length){
+    stop("max.label.length cannot be smaller than min.label.length")
+  }
   vals <- as.numeric(vals)
   lab.logs <- floor(log10(vals))
-  raw.best <- length(which(lab.logs < 3-acceptable.decimals))
-  k.best <- length(which(lab.logs >= 3-acceptable.decimals & lab.logs < 6-acceptable.decimals))
-  M.best <- length(which(lab.logs >= 6-acceptable.decimals & lab.logs < 9-acceptable.decimals))
-  B.best <- length(which(lab.logs >= 9-acceptable.decimals & lab.logs < 12-acceptable.decimals))
-  T.best <- length(which(lab.logs > 11-acceptable.decimals))
+  raw.best <- length(which(lab.logs < 4-acceptable.decimals))
+  k.best <- length(which(lab.logs >= 4-acceptable.decimals & lab.logs < 7-acceptable.decimals))
+  M.best <- length(which(lab.logs >= 7-acceptable.decimals & lab.logs < 10-acceptable.decimals))
+  B.best <- length(which(lab.logs >= 10-acceptable.decimals & lab.logs < 13-acceptable.decimals))
+  T.best <- length(which(lab.logs > 13-acceptable.decimals))
   if(any(c(T.best, B.best, M.best, k.best) > raw.best)){
     if(T.best > 0){
       scalar <- 10^12
@@ -228,7 +235,17 @@ clean.numeric.labels <- function(vals, suffix.delim="", acceptable.decimals=0,
       n.prelim.small <- max(nchar(prelim.small), 0, na.rm=T)
       n.digits <- n.prelim.big + n.prelim.small
       if(n.digits >= min.label.length){
-        as.character(prelim)
+        if(n.digits <= max.label.length){
+          as.character(prelim)
+        }else{
+          truncated.nsmall <- max(max.label.length - n.prelim.big, 0)
+          if(truncated.nsmall > 0){
+            format(paste(prelim.big, substr(prelim.small, 1, truncated.nsmall), sep="."),
+                   nsmall=truncated.nsmall)
+          }else{
+            as.character(prelim.big)
+          }
+        }
       }else{
         nsmall <- min.label.length-n.prelim.big
         full.small <- unlist(strsplit(as.character(full.r), split=".", fixed=T))[2]

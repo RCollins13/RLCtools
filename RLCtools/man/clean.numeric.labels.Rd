@@ -7,8 +7,9 @@
 clean.numeric.labels(
   vals,
   suffix.delim = "",
-  acceptable.decimals = 0,
+  acceptable.decimals = 1,
   min.label.length = 1,
+  max.label.length = Inf,
   respect.original.vals = FALSE,
   return.rounded.vals = FALSE
 )
@@ -20,11 +21,15 @@ clean.numeric.labels(
 suffix [default: no delimiter, ""]}
 
 \item{acceptable.decimals}{Number of significant decimal digits to permit
-before jumping to a greater log suffix [default: 0]}
+before jumping to a greater log suffix [default: 1]}
 
 \item{min.label.length}{Minimum total count of digits to include in each
 label; labels shorter than this length will have their decimal places expanded
 [default: 1]}
+
+\item{max.label.length}{Maximum total count of digits to include in each
+label; labels shorter than this length will have their decimal places truncated
+[default: Infinite]}
 
 \item{respect.original.vals}{Should the exact length of \code{vals} be respected,
 with no values being collapsed when they round to the same significant digit?
@@ -44,10 +49,10 @@ If element-wise conversion is desired, it's recommended to apply over \code{vals
 }
 \examples{
 
-vals <- 10^(0:6)
+vals <- 10^(2:5)
 
 # Standard invocation:
-clean.numeric.labels(vals)
+clean.numeric.labels(vals, acceptable.decimals=1)
 
 # Element-wise implementation
 sapply(vals, clean.numeric.labels)
