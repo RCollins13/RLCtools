@@ -34,6 +34,37 @@ calc.hwe.xy <- function(f.het, f.hom){
   c(x, y)
 }
 
+#' Parse a VCF GT
+#'
+#' Converts a VCF-style GT string to integer non-ref (or, alternatively, ref) dosage
+#'
+#' @param gt A character vector of one or more VCF-style genotype string to be parsed
+#' @param count.ref Should the number of reference alleles be returned?
+#' \[default: return count of non-ref alleles\]
+#' @param any.na Should `NA` be returned if any missing allele is encountered?
+#' \[default: TRUE\]
+#'
+#' @examples
+#' parse.gt(c("0/1", "1/1", "3|4", "./4", "./.", "0|0"))
+#'
+#' @returns Integer of allele dosage
+#'
+#' @export parse.gt
+#' @export
+parse.gt <- function(gt, count.ref=FALSE, any.na=TRUE){
+  if(length(gt) > 1){
+    return(sapply(gt, parse.gt, count.ref=count.ref, any.na=any.na))
+  }
+  a <- as.numeric(unlist(strsplit(as.character(gt), split="[|/]")))
+  if(any(is.na(a)) & any.na) {
+    return(NA)
+  }else if(count.ref){
+    return(sum(a == 0, na.rm=T))
+  }else{
+    return(sum(a > 0, na.rm=T))
+  }
+}
+
 
 #' Simulate genotypes
 #'
