@@ -14,6 +14,7 @@ ridgeplot(
   x.title = "Values",
   x.title.line = 0.3,
   x.label.line = -0.65,
+  min.x.ticks = 3,
   max.x.ticks = 6,
   x.tick.len = -0.025,
   xlims = NULL,
@@ -57,6 +58,9 @@ plotting. [default: 1]}
 \item{x.title.line}{Value of \code{title.line} passed to \code{\link[=clean.axis]{clean.axis()}}}
 
 \item{x.label.line}{Value of \code{label.line} passed to \code{\link[=clean.axis]{clean.axis()}}}
+
+\item{min.x.ticks}{Value of \code{min.ticks} passed to \code{\link[=clean.axis]{clean.axis()}}
+[default: 3]}
 
 \item{max.x.ticks}{Value of \code{max.ticks} passed to \code{\link[=clean.axis]{clean.axis()}}
 [default: 6]}

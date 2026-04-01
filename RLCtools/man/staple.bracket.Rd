@@ -11,6 +11,7 @@ staple.bracket(
   y1,
   orient = "vertical",
   staple.len = 0.25,
+  staple.col = "black",
   staple.accent.color = NULL,
   accent.len = staple.len/2,
   ...
@@ -29,6 +30,8 @@ staple.bracket(
 [default: vertical]}
 
 \item{staple.len}{Length of bracket end markers [default: 0.25]}
+
+\item{staple.col}{Line color used to draw bracket [default: "black"]}
 
 \item{staple.accent.color}{Fill color for optional staple accent
 [default: no fill]}

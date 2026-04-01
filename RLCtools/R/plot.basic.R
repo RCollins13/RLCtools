@@ -126,6 +126,8 @@ scatterplot <- function(X, Y, colors=NULL, title=NULL,
 #' @param x.title Title for X axis \[default: "Values"\]
 #' @param x.title.line Value of `title.line` passed to [RLCtools::clean.axis()]
 #' @param x.label.line Value of `label.line` passed to [RLCtools::clean.axis()]
+#' @param min.x.ticks Value of `min.ticks` passed to [RLCtools::clean.axis()]
+#' \[default: 3\]
 #' @param max.x.ticks Value of `max.ticks` passed to [RLCtools::clean.axis()]
 #' \[default: 6\]
 #' @param x.tick.len Value of `tck` passed to [RLCtools::clean.axis()]
@@ -173,10 +175,10 @@ scatterplot <- function(X, Y, colors=NULL, title=NULL,
 #' @export
 ridgeplot <- function(data, bw.adj=NULL, breaks=NULL, names=NULL, hill.overlap=0.35,
                       x.axis.side=1, x.title="Values", x.title.line=0.3,
-                      x.label.line=-0.65, max.x.ticks=6, x.tick.len=-0.025,
-                      xlims=NULL, y.axis=TRUE, ylims=NULL, yaxs="r", fill=NULL,
-                      border=NULL, border.lwd=2, hill.bottom=0, fancy.hills=TRUE,
-                      fancy.light.fill=NULL, fancy.quartile.color=NULL,
+                      x.label.line=-0.65, min.x.ticks=3, max.x.ticks=6,
+                      x.tick.len=-0.025, xlims=NULL, y.axis=TRUE, ylims=NULL,
+                      yaxs="r", fill=NULL, border=NULL, border.lwd=2, hill.bottom=0,
+                      fancy.hills=TRUE, fancy.light.fill=NULL, fancy.quartile.color=NULL,
                       fancy.quartile.lwd=2, fancy.quartile.lend="square",
                       parmar=c(2.5, 3, 0.25, 0.25)){
   # Get names before manipulating data
@@ -288,8 +290,9 @@ ridgeplot <- function(data, bw.adj=NULL, breaks=NULL, names=NULL, hill.overlap=0
   # Prep plot area
   prep.plot.area(xlims, ylims, parmar, xaxs="i", yaxs=yaxs)
   if(!is.na(x.axis.side)){
-    clean.axis(x.axis.side, title=x.title, infinite=TRUE, max.ticks=max.x.ticks,
-               label.line=x.label.line, title.line=x.title.line, tck=x.tick.len)
+    clean.axis(x.axis.side, title=x.title, infinite=TRUE, min.ticks=min.x.ticks,
+               max.ticks=max.x.ticks, label.line=x.label.line,
+               title.line=x.title.line, tck=x.tick.len)
   }
   if(y.axis){
     axis(2, at=(1:length(data)) - 0.5, tick=F, las=2, line=-0.8, labels=names)
