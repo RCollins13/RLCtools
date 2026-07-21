@@ -12,6 +12,32 @@
 # Mathematical helper functions
 
 
+#' Box-cox transformation
+#'
+#' Applies a box-cox transformation to a numeric vector
+#'
+#' @param x Vector of numeric values to transform
+#'
+#' @seealso [car::powerTransform()]
+#'
+#' @returns Numeric vector of transformed values in the same order as `x`
+#'
+#' @export boxcox
+#' @export
+boxcox <- function(x) {
+  if (!is.numeric(x)){
+    stop("x must be numeric")
+  }
+
+  if (any(x <= 0, na.rm = TRUE)){
+    stop("Box-Cox transformation requires all values to be > 0")
+  }
+
+  pt <- car::powerTransform(x)
+  car::bcPower(x, pt$lambda)
+}
+
+
 #' Chi-square power
 #'
 #' Calculate the power of a 2x2 Chi-square test given a known sample size and prespecified effect odds ratio
